@@ -1,10 +1,13 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
+import 'package:fypnewproject/chatScreen.dart';
 
 class ItemDetailsScreen extends StatefulWidget {
-  final Map<String, dynamic> item;
+  final item;
+
 
   const ItemDetailsScreen({super.key, required this.item});
 
@@ -16,6 +19,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
   late Animation<double> _scaleAnimation;
+  final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
   @override
   void initState() {
@@ -82,7 +86,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
               children: [
                 // Item Image
                 Hero(
-                  tag: widget.item['image'] ?? '',
+                  tag: widget.item?? '',
                   child: Container(
                     height: isSmallScreen ? 250 : 350,
                     width: double.infinity,
@@ -100,7 +104,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child:  Image.memory(
-                        base64Decode(widget.item['image']),
+                        base64Decode(widget.item['image'] ?? 'No image'
+                        ),
                         fit: BoxFit.contain,
                         width: double.infinity,
                       )
@@ -111,7 +116,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
 
                 // Item Title
                 Text(
-                  widget.item['title'] ?? 'No Title',
+                  widget.item['productName'] ?? 'No name',
                   style: TextStyle(
                     fontSize: isSmallScreen ? 24 : 28,
                     fontWeight: FontWeight.bold,
@@ -126,7 +131,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
                     Icon(Icons.location_on, size: 18, color: Colors.grey.shade600),
                     const SizedBox(width: 4),
                     Text(
-                      widget.item['distance'] ?? 'unknown',
+
+                      // widget.item['distance'] ??
+                          'unknown',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,
@@ -154,7 +161,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
                     ],
                   ),
                   child: Text(
-                    widget.item['description'] ?? 'No description provided.',
+                    widget.item['productDescription'] ?? 'No description provided.',
                     style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
                 ),
@@ -191,18 +198,28 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
                 const SizedBox(height: 32),
 
                 // Action Buttons
+            widget.item['userId'] != currentUserId?
                 Row(
                   children: [
-                    Expanded(
+
+                         Expanded(
                       child: _buildActionButton(
                         icon: Icons.chat,
                         label: "Chat",
                         color: Colors.deepPurple,
                         onPressed: () {
-                          // Implement chat functionality
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChatScreen(
+                                userId: widget.item['userId'],
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ),
+
                     const SizedBox(width: 12),
                     Expanded(
                       child: _buildActionButton(
@@ -226,7 +243,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
                       ),
                     ),
                   ],
-                ),
+                )
+                  : SizedBox.shrink(),
                 const SizedBox(height: 24),
               ],
             ),
