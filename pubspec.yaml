@@ -54,6 +54,7 @@ dependencies:
   photo_view: any
   country_code_picker: any
   url_launcher: any
+  uuid: ^3.0.7
 
 dev_dependencies:
   flutter_test:
