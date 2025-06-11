@@ -190,10 +190,6 @@ class _AccountScreenState extends State<AccountScreen>
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(
-        context,
-        4,
-      ), // Account is selected
     );
   }
 
@@ -293,101 +289,4 @@ class _AccountScreenState extends State<AccountScreen>
     );
   }
 
-  Widget _buildBottomNavBar(BuildContext context, int currentIndex) {
-    return Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.deepPurple.withOpacity(0.1),
-            blurRadius: 16,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        child: BottomNavigationBar(
-          currentIndex: currentIndex,
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.deepPurple,
-          unselectedItemColor: Colors.grey.shade500,
-          backgroundColor: Colors.white,
-          showUnselectedLabels: true,
-          elevation: 10,
-          onTap: (index) {
-            if (index == currentIndex) return;
-
-            if (index == 0) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const HomePage()),
-              );
-            } else if (index == 1) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const DonationItemsScreen()),
-              );
-            } else if (index == 2) {
-              // Add button
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DonationItemsScreen(),
-                ), // Or your "Add Item" screen
-              );
-            } else if (index == 3) {
-              // Messages button
-              // Generate chat ID by combining user IDs in sorted order
-              String generateChatId(String userId1, String userId2) {
-                final ids = [userId1, userId2]..sort();
-                return '${ids[0]}_${ids[1]}';
-              }
-
-              // Usage
-              // Navigator.push(
-              //   // context,
-              //   // MaterialPageRoute(
-              //   //   builder:
-              //   //       (context) => ChatScreen(receiverId: null,
-              //   //       ),
-              //   // ),
-              // );
-            } else if (index == 4) {
-              // Already on account screen
-              return;
-            }
-          },
-          items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.home_filled),
-              label: "Home",
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.volunteer_activism),
-              label: "Donations",
-            ),
-            BottomNavigationBarItem(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.deepPurple,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.add, color: Colors.white),
-              ),
-              label: "",
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline),
-              label: "Chats",
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              label: "Account",
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
