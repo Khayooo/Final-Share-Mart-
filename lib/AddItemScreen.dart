@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class AddItemScreen extends StatefulWidget {
   final String itemType;
@@ -30,6 +32,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
   String? _base64image;
   bool _isLoading = false;
 
+
+  final currentUser = FirebaseAuth.instance.currentUser;
+
+
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +46,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
       _priceController.text = "Free";
     }
   }
+
+
+
+
 
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(
@@ -69,6 +80,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         image: _base64image ?? '',
         uid: uid,
         itemType: widget.itemType,
+        userId: FirebaseAuth.instance.currentUser!.uid,
       );
 
       await _ref.child(path).child(uid).set(itemModel.toMap());
@@ -298,6 +310,7 @@ class ItemModel {
   final String image;
   final String uid;
   final String itemType;
+  final String userId;
 
   ItemModel({
     required this.productName,
@@ -306,6 +319,7 @@ class ItemModel {
     required this.image,
     required this.uid,
     required this.itemType,
+    required this.userId
   });
 
   Map<String, dynamic> toMap() {
@@ -317,6 +331,7 @@ class ItemModel {
       'uid': uid,
       'itemType': itemType,
       'timestamp': ServerValue.timestamp,
+      'userId':userId,
     };
   }
 
@@ -328,6 +343,7 @@ class ItemModel {
       image: map['image'] ?? '',
       uid: map['uid'] ?? '',
       itemType: map['itemType'] ?? 'sell',
+      userId: map['userId'] ?? ''
     );
   }
 }
