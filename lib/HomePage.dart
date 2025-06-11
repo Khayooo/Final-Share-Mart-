@@ -1,11 +1,12 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:firebase_database/firebase_database.dart';
-// import 'Chat Module/ChatScreen.dart';
+import 'Chats/ChatsScreen.dart';
+import 'ItemDetailsScreen.dart';
 import 'ListedItem.dart';
 import 'AccountScreen.dart';
-import 'ItemDetailsScreen.dart';
 import 'Notifications.dart';
 import 'AddItemScreen.dart';
 import 'DonationItems.dart';
@@ -25,6 +26,7 @@ class _HomePageState extends State<HomePage>
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref().child(
     'items',
   );
+  final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
   @override
   void initState() {
@@ -194,18 +196,13 @@ class _HomePageState extends State<HomePage>
             final item = items[index];
             return GestureDetector(
               onTap: () {
+
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ItemDetailsScreen(
-                      item: {
-                        "image": item.image,
-                        "title": item.productName,
-                        "price": item.productPrice,
-                        'distance': '3.5 km',
-                        "description": item.productDescription,
-                      },
-                    ),
+                    builder: (context) => ItemDetailsScreen(item: item.toMap()),
+
                   ),
                 );
               },
@@ -566,6 +563,10 @@ class _HomePageState extends State<HomePage>
                 MaterialPageRoute(builder: (context) => const AccountScreen()),
               );
             } else if (index == 3) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ChatsScreen()),
+              );
               // Handle chat button tap
             }
           },
@@ -605,36 +606,51 @@ class _HomePageState extends State<HomePage>
 }
 
 class ItemModel {
-  final String productName;
-  final String productPrice;
-  final String productDescription;
   final String image;
-  final String sellerId;
-  final String sellerName;
-  final String itemId;
   final String itemType;
+  final String productName;
+  final String productDescription;
+  final String productPrice;
+  final int timestamp;
+  final String uid;
+  final String userId;
 
   ItemModel({
-    required this.productName,
-    required this.productPrice,
-    required this.productDescription,
     required this.image,
-    required this.sellerId,
-    required this.sellerName,
-    required this.itemId,
     required this.itemType,
+    required this.productName,
+    required this.productDescription,
+    required this.productPrice,
+    required this.timestamp,
+    required this.uid,
+    required this.userId,
   });
 
+  // From Firestore
   factory ItemModel.fromMap(Map<String, dynamic> map) {
     return ItemModel(
-      productName: map['productName'] ?? '',
-      productPrice: map['productPrice'] ?? '',
-      productDescription: map['productDescription'] ?? '',
       image: map['image'] ?? '',
-      sellerId: map['sellerId'] ?? '',
-      sellerName: map['sellerName'] ?? '',
-      itemId: map['itemId'] ?? '',
-      itemType: map['itemType'] ?? 'sell',
+      itemType: map['itemType'] ?? '',
+      productName: map['productName'] ?? '',
+      productDescription: map['productDescription'] ?? '',
+      productPrice: map['productPrice'] ?? '',
+      timestamp: map['timestamp'] ?? 0,
+      uid: map['uid'] ?? '',
+      userId: map['userId'] ?? '',
     );
+  }
+
+  // To Firestore
+  Map<String, dynamic> toMap() {
+    return {
+      'image': image,
+      'itemType': itemType,
+      'productName': productName,
+      'productDescription': productDescription,
+      'productPrice': productPrice,
+      'timestamp': timestamp,
+      'uid': uid,
+      'userId': userId,
+    };
   }
 }
