@@ -29,10 +29,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-       // home:  SplashScreen(),
-      // home: HomePage(),
-      // home: ItemListed(),
-
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
