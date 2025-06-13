@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fypnewproject/admin%20panel/admin_panel.dart';
 import 'RegisterNewUser.dart';
 import 'HomePage.dart';
 
@@ -85,10 +86,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       );
 
       if (userCredential.user != null && mounted) {
+        // Check if the user is admin
+        final userEmail = userCredential.user!.email;
+        final isAdmin = userEmail == 'mabdullahkhayoo@gmail.com';
+
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login successful!'),
+          SnackBar(
+            content: Text(isAdmin ? 'Admin login successful!' : 'Login successful!'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 2),
           ),
@@ -98,10 +103,19 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         await Future.delayed(const Duration(milliseconds: 1500));
 
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
+          if (isAdmin) {
+            //Navigate to admin panel for admin user
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminPanel()),
+            );
+          } else{
+            // Navigate to HomePage for regular user users
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          }
         }
       }
     } on FirebaseAuthException catch (e) {
