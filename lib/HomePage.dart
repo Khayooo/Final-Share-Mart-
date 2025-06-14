@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'Chats/ChatsScreen.dart';
+import 'DonorVerificationScreen.dart';
 import 'ItemDetailsScreen.dart';
 import 'ListedItem.dart';
 import 'AccountScreen.dart';
 import 'Notifications.dart';
 import 'AddItemScreen.dart';
 import 'DonationItems.dart';
+import 'Widgets/PendingVerificationPage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -549,13 +551,56 @@ class _HomePageState extends State<HomePage>
           backgroundColor: Colors.white,
           showUnselectedLabels: true,
           elevation: 10,
-          onTap: (index) {
-            if (index == 1) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const DonationItemsScreen()),
-              );
-            } else if (index == 2) {
+            onTap: (index) async {
+              if (index == 1) {
+                final currentUser = FirebaseAuth.instance.currentUser;
+
+                if (currentUser == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Please sign in first.")),
+                  );
+                  return;
+                }
+
+                final uid = currentUser.uid;
+                final dbRef = FirebaseDatabase.instance.ref("donor_verifications");
+
+                try {
+                  final snapshot = await dbRef.orderByChild("userId").equalTo(uid).once();
+
+                  if (snapshot.snapshot.exists) {
+                    final data = snapshot.snapshot.value as Map;
+                    final firstEntry = data.entries.first.value as Map<dynamic, dynamic>;
+                    final status = firstEntry['status'];
+
+                    if (status == 'approved') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const DonationItemsScreen()),
+                      );
+                    } else if (status == 'pending') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PendingVerificationPage()),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Unexpected status: $status")),
+                      );
+                    }
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const DonorVerificationScreen()),
+                    );
+                  }
+                } catch (e) {
+                  print("Error accessing Realtime Database: $e");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Something went wrong.")),
+                  );
+                }
+              }else if (index == 2) {
               _showAddItemDialog(context);
             } else if (index == 4) {
               Navigator.push(

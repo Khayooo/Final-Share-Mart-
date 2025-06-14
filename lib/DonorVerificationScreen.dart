@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:file_picker/file_picker.dart';
@@ -26,6 +27,9 @@ class _DonorVerificationScreenState extends State<DonorVerificationScreen> {
   String? _disabilityCardName;
   String? _studentCardName;
   bool _isSubmitting = false;
+
+  final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
 
   @override
   void dispose() {
@@ -174,7 +178,7 @@ class _DonorVerificationScreenState extends State<DonorVerificationScreen> {
         'character_certificate': characterBase64,
         'timestamp': ServerValue.timestamp,
         'status': 'pending',
-        'key': donorRef.key,
+        'userId':currentUserId
       };
 
       // Add optional files only if they exist
@@ -204,7 +208,7 @@ class _DonorVerificationScreenState extends State<DonorVerificationScreen> {
           _disabilityCardName = null;
           _studentCardName = null;
         });
-
+       Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Verification submitted successfully!'),
