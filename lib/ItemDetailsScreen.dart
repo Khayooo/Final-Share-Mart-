@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
-import 'package:fypnewproject/chatScreen.dart';
+import 'package:fypnewproject/Chats/ChatWithUserScreen.dart';
 
 class ItemDetailsScreen extends StatefulWidget {
   final item;
@@ -211,9 +211,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => ChatScreen(
-                                userId: widget.item['userId'],
-                              ),
+                              builder: (_) =>ChatWithUserScreen(currentUserId: currentUserId, receiverId: widget.item['userId'])
                             ),
                           );
                         },
