@@ -22,7 +22,6 @@ class _ChatScreenState extends State<ChatsScreen>
     _tabController = TabController(length: 2, vsync: this);
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
