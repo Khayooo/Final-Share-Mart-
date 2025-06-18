@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:fypnewproject/Chats/ChatWithUserScreen.dart';
-import 'package:fypnewproject/Chats/NoMessageWidget.dart';
+import 'ChatWithUserScreen.dart';
+import 'NoMessageWidget.dart';
 
 class ChatList extends StatelessWidget {
   final String roleFilter;
