@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 
+
+import 'Login screen/SignInScreen.dart';
 import 'LoginScreen.dart';
 
 
@@ -59,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     Future.delayed(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        MaterialPageRoute(builder: (context) => const SignInScreen()),
       );
     });
   }
@@ -207,7 +209,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const LoginScreen(),
+                    builder: (context) => const SignInScreen(),
                   ),
                 );
               },
