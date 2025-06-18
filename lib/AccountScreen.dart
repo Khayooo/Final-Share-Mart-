@@ -5,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'DonorVerificationScreen.dart';
+import 'Login screen/SignInScreen.dart';
 import 'LoginScreen.dart';
 import 'ProfileInformationScreen.dart';
 import 'SavedItemsScreen.dart';
@@ -137,7 +138,7 @@ class _AccountScreenState extends State<AccountScreen>
     await FirebaseAuth.instance.signOut();
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      MaterialPageRoute(builder: (context) => const SignInScreen()),
           (Route<dynamic> route) => false,
     );
   }
