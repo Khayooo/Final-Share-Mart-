@@ -11,8 +11,6 @@ import 'SavedItemsScreen.dart';
 import 'MyAdds.dart';
 import 'HomePage.dart';
 import 'DonationItems.dart';
-import 'Widgets/ApprovedDonorPage.dart';
-import 'Widgets/PendingVerificationPage.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -299,66 +297,16 @@ class _AccountScreenState extends State<AccountScreen>
                 ),
                 _buildAccountOption(
                   icon: Icons.verified_user,
-                  title: "Verify Donner",
+                  title: "Verify Recipient",
                   subtitle: "Get verified to receive donations",
-                    onTap: () async {
-                      final currentUser = FirebaseAuth.instance.currentUser;
-
-                      if (currentUser == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Please sign in first.")),
-                        );
-                        return;
-                      }
-
-                      final uid = currentUser.uid;
-                      final dbRef = FirebaseDatabase.instance.ref("donor_verifications");
-
-                      try {
-                        final snapshot = await dbRef.orderByChild("userId").equalTo(uid).once();
-
-                        if (snapshot.snapshot.exists) {
-                          final data = snapshot.snapshot.value as Map;
-
-                          final firstEntry = data.entries.first.value as Map<dynamic, dynamic>;
-                          final status = firstEntry['status'];
-
-                          if (status == 'pending') {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PendingVerificationPage(),
-                              ),
-                            );
-                          } else if (status == 'approved') {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ApprovedDonorPage(),
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Unexpected status: $status")),
-                            );
-                          }
-                        } else {
-                          // No verification record found
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const DonorVerificationScreen(),
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        print("Error accessing Realtime Database: $e");
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Something went wrong.")),
-                        );
-                      }
-                    }
-
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DonorVerificationScreen(),
+                      ),
+                    );
+                  },
                 ),
                 _buildAccountOption(
                   icon: Icons.star,
