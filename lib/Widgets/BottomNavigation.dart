@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../AccountScreen.dart';
+import '../Screens/AccountScreen.dart';
 import '../Chats/ChatsScreen.dart';
-import '../DonationItems.dart';
+import '../Screens/DonationItems.dart';
 
 
 class BottomNavigator extends StatelessWidget {
