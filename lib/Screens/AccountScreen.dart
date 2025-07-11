@@ -5,13 +5,10 @@ import 'package:firebase_database/firebase_database.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'DonorVerificationScreen.dart';
-import 'Login screen/SignInScreen.dart';
 import 'LoginScreen.dart';
+import 'MyAdds.dart';
 import 'ProfileInformationScreen.dart';
 import 'SavedItemsScreen.dart';
-import 'MyAdds.dart';
-import 'HomePage.dart';
-import 'DonationItems.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -138,7 +135,7 @@ class _AccountScreenState extends State<AccountScreen>
     await FirebaseAuth.instance.signOut();
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => const SignInScreen()),
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
           (Route<dynamic> route) => false,
     );
   }
