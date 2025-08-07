@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
-import 'LoginScreen.dart';
+import 'Authentication/LoginScreen.dart';
 
 
 class SplashScreen extends StatefulWidget {
@@ -188,31 +188,23 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           position: _slideAnimation,
           child: FadeTransition(
             opacity: _fadeAnimation,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber.shade700,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 40,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                elevation: 8,
-                shadowColor: Colors.black.withOpacity(0.3),
-              ),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginScreen(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade700,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    offset: const Offset(0, 4),
+                    blurRadius: 8,
                   ),
-                );
-              },
+                ],
+              ),
               child: const Text(
                 "Want to donate",
                 style: TextStyle(
+                  color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
