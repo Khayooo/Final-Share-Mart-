@@ -55,6 +55,7 @@ dependencies:
   country_code_picker: any
   url_launcher: any
   uuid: any
+  cached_network_image: any
 
 
 dev_dependencies:
