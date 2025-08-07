@@ -1,9 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import '../add product features/Product_Request.dart';
-import '../add product features/exchange_product.dart';
-import 'HomePage.dart';
+import 'User/HomePage.dart';
 import 'SplashScreen.dart';
 import 'firebase_options.dart';
 
