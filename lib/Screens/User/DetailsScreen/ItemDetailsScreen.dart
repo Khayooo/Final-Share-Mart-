@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fypnewproject/Screens/User/Chat/ChatWithUserScreen.dart';
 
@@ -12,16 +13,19 @@ class ItemDetailsScreen extends StatefulWidget {
   State<ItemDetailsScreen> createState() => _ItemDetailsScreenState();
 }
 
-class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTickerProviderStateMixin {
+class _ItemDetailsScreenState extends State<ItemDetailsScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
   late Animation<double> _scaleAnimation;
+
   final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+  Map<String, dynamic>? _sellerData; // Store seller info
+  bool _isLoadingSeller = true; // Loading state
 
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -36,6 +40,32 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
     );
 
     _controller.forward();
+
+    _fetchSellerInfo(widget.item['userId']); // Fetch seller info
+  }
+
+  Future<void> _fetchSellerInfo(String sellerId) async {
+    try {
+      final ref = FirebaseDatabase.instance.ref().child("users").child(sellerId);
+      final snapshot = await ref.get();
+      if (snapshot.exists && snapshot.value is Map) {
+        setState(() {
+          _sellerData = Map<String, dynamic>.from(snapshot.value as Map);
+          _isLoadingSeller = false;
+        });
+      } else {
+        setState(() {
+          _sellerData = null;
+          _isLoadingSeller = false;
+        });
+      }
+    } catch (e) {
+      print("Error fetching seller info: $e");
+      setState(() {
+        _sellerData = null;
+        _isLoadingSeller = false;
+      });
+    }
   }
 
   @override
@@ -120,6 +150,15 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
                 ),
                 const SizedBox(height: 8),
 
+                Text(
+                  'Rs ${widget.item['productPrice'] ?? 0}',
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 24 : 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepPurple.shade800,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 // Location
                 Row(
                   children: [
@@ -144,18 +183,24 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
                 ),
                 const SizedBox(height: 24),
 
-                // Donor Information
-                _buildSectionHeader("Donor's Information"),
+                // Seller Information
+                _buildSectionHeader("Seller Information"),
                 const SizedBox(height: 12),
-                _buildCard(
+                _isLoadingSeller
+                    ? const Center(child: CircularProgressIndicator())
+                    : _sellerData == null
+                    ? const Text("Seller information not available.")
+                    : _buildCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildInfoRow("Name", widget.item['donorName'] ?? "N/A"),
+                      _buildInfoRow("Name", _sellerData!['name'] ?? "N/A"),
                       const SizedBox(height: 12),
-                      _buildInfoRow("Address", widget.item['donorAddress'] ?? "N/A"),
+                      _buildInfoRow("Email", _sellerData!['email'] ?? "N/A"),
                       const SizedBox(height: 12),
-                      _buildInfoRow("CNIC", maskCNIC(widget.item['donorCNIC'] ?? "N/A")),
+                      _buildInfoRow("Address", _sellerData!['address'] ?? "No Address Save"),
+                      const SizedBox(height: 12),
+                      _buildInfoRow("Phone", _sellerData!['phone'] ?? "No phone number add"),
                     ],
                   ),
                 ),
@@ -177,7 +222,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> with SingleTicker
                                 builder: (_) => ChatWithUserScreen(
                                   currentUserId: currentUserId,
                                   receiverId: widget.item['userId'],
-                                  itemType: widget.item['itemType'] ?? 'Unknown', // 👈 Passing itemType
+                                  itemType: widget.item['itemType'] ?? 'Unknown',
                                 ),
                               ),
                             );
