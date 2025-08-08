@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fypnewproject/Screens/User/Chat/ChatWithUserScreen.dart';
+
 import '../../Model/ItemModel.dart';
 import 'DetailsScreen/ItemDetailsScreen.dart';
 import 'ListedItem.dart';
@@ -29,7 +32,8 @@ class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref().child('items');
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-
+  final TextEditingController messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   int _selectedIndex = 0;
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
@@ -224,6 +228,66 @@ class _HomePageState extends State<HomePage>
       },
     );
   }
+
+  String getChatId(String id1, String id2, String itemType) {
+    final sorted = [id1, id2]..sort(); // Keep order consistent
+    return '${sorted[0]}-${sorted[1]}-$itemType';
+  }
+
+
+  void _sendMessage(receiverId) async {
+    final text = messageController.text.trim();
+    if (text.isEmpty) return;
+
+    final chatId = getChatId(currentUserId, receiverId, 'Sell');
+
+    try {
+      final newMessage = {
+        'senderId': currentUserId,
+        'text': text,
+        'timestamp': FieldValue.serverTimestamp(),
+      };
+
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .add(newMessage);
+
+// ✅ Also update the parent chat document with the latest message
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .set({
+        'participants': {
+          currentUserId: true,
+          receiverId: true,
+        },
+        'itemType': 'Sell',
+        'lastMessage': text,
+        'timestamp': FieldValue.serverTimestamp(), // This makes ChatList auto-refresh
+      }, SetOptions(merge: true));
+
+
+      messageController.clear();
+
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent + 80,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+
+    } catch (e) {
+      print('❌ Error sending message: $e');
+    }
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -522,50 +586,84 @@ class _HomePageState extends State<HomePage>
           ),
           itemBuilder: (context, index) {
             final item = items[index];
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => ItemDetailsScreen(item: item.toMap())));
-              },
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
+            return Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ItemDetailsScreen(item: item.toMap()),
+                            ),
+                          );
+                        },
                       child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                        borderRadius: BorderRadius.circular(8),
                         child: item.image.isNotEmpty
-                            ? Image.memory(base64Decode(item.image), fit: BoxFit.contain, width: double.infinity)
-                            : Container(color: Colors.grey.shade200, child: const Icon(Icons.image, size: 50, color: Colors.grey)),
+                            ? Image.memory(
+                          base64Decode(item.image),
+                          fit: BoxFit.cover,
+                          width: double.infinity, // take full available width
+                          height: 100,             // fixed height
+                        )
+                            : Container(
+                          width: double.infinity,
+                          height: 100,
+                          color: Colors.grey.shade200,
+                          child: const Icon(Icons.image, size: 50, color: Colors.grey),
+                        ),
                       ),
+
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(item.productName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                decoration: BoxDecoration(color: Colors.deepPurple.shade50, borderRadius: BorderRadius.circular(20)),
-                                child: Text(
-                                  item.productPrice == "Free" ? "Free" : "Rs. ${item.productPrice}",
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-                                ),
-                              ),
-                              Icon(Icons.favorite_border, size: 20, color: Colors.grey.shade600),
-                            ],
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.productName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            decoration: BoxDecoration(color: Colors.deepPurple.shade50, borderRadius: BorderRadius.circular(20)),
+                            child: Text(
+                              "Rs. ${item.productPrice}",
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                        Column(
+                          children: [
+
+                           Row(
+                             children: [
+                               ElevatedButton(
+                                 onPressed: () {
+                                   _showNegotiateDialog(context, item);
+                                 },
+                                 style: ElevatedButton.styleFrom(
+                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                   backgroundColor: Colors.deepPurple,
+                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                 ),
+                                 child: const Text("Negotiate", style: TextStyle(fontSize: 11, color: Colors.white)),
+                               ),
+                               Spacer(),
+                             ],
+                           )
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             );
           },
@@ -573,4 +671,41 @@ class _HomePageState extends State<HomePage>
       },
     );
   }
+  void _showNegotiateDialog(BuildContext context, item) {
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Negotiate"),
+        content: TextField(
+          controller: messageController,
+          decoration: const InputDecoration(hintText: "Enter your message"),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+
+              final message = messageController.text.trim();
+              Navigator.pop(context);
+              if (message.isNotEmpty) {
+                _sendMessage(item.userId);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ChatWithUserScreen(currentUserId: currentUserId, receiverId: item.userId, itemType: 'Sell')),
+                );
+                // You can also trigger sending here via Firebase, etc.
+              }
+            },
+            child: const Text("Send"),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
