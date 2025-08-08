@@ -9,7 +9,6 @@ import 'DonorVerificationScreen.dart';
 import '../../Authentication/LoginScreen.dart';
 import 'MyAdds.dart';
 import 'ProfileInformationScreen.dart';
-import 'SavedItemsScreen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -240,15 +239,6 @@ class _AccountScreenState extends State<AccountScreen>
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const MyAddsScreen()),
-                  ),
-                ),
-                _buildAccountOption(
-                  icon: Icons.favorite,
-                  title: "Saved Items",
-                  subtitle: "View your favorite donations",
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SavedItemsScreen()),
                   ),
                 ),
                 _buildAccountOption(
