@@ -6,6 +6,7 @@ class ChatWithUserScreen extends StatefulWidget {
   final String currentUserId;
   final String receiverId;
   final String itemType;
+
   const ChatWithUserScreen({
     Key? key,
     required this.currentUserId,
