@@ -150,6 +150,7 @@ class _ExchangeProductState extends State<ExchangeProduct> {
           'productImage': _base64Image,
           'timestamp': ServerValue.timestamp,
           'userId': uid,
+          'itemType': 'Exchange',
           'status': 'active',
         };
 
