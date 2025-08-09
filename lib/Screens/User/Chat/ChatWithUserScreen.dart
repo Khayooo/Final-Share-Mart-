@@ -1,6 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart'; // 📌 Added
 
 class ChatWithUserScreen extends StatefulWidget {
   final String currentUserId;
@@ -36,18 +39,14 @@ class _ChatWithUserScreenState extends State<ChatWithUserScreen> {
   Future<void> _initializeChat() async {
     final chatId = getChatId(widget.currentUserId, widget.receiverId, widget.itemType);
 
-
-    final chatDoc =
-    await FirebaseFirestore.instance.collection('chats').doc(chatId).get();
+    final chatDoc = await FirebaseFirestore.instance.collection('chats').doc(chatId).get();
 
     if (chatDoc.exists) {
-      // Check if itemType matches
       final existingItemType = chatDoc.data()?['itemType'];
-
       if (existingItemType == widget.itemType) {
         print("✅ Chat already exists with same itemType");
       } else {
-        print("🆕 Same users, different itemType — treating as new conversation (will overwrite on send)");
+        print("🆕 Same users, different itemType — treating as new conversation");
       }
     } else {
       print("🆕 New chat will be created on message send.");
@@ -63,27 +62,22 @@ class _ChatWithUserScreenState extends State<ChatWithUserScreen> {
     });
   }
 
-  // 🔍 Fetch receiver's data from Realtime Database
   Future<void> _fetchReceiverData() async {
     try {
-print("user ha va");
       final snapshot = await FirebaseDatabase.instance
           .ref('users/${widget.receiverId}')
           .once();
-
 
       final rawData = snapshot.snapshot.value;
 
       if (rawData != null && rawData is Map) {
         final data = rawData;
-
         setState(() {
           receiverName = data['name'] ?? 'User';
           isLoadingReceiver = false;
         });
-
       } else {
-        print("⚠️ No user data found at users/${widget.receiverId}");
+        print("⚠️ No user data found");
       }
     } catch (e) {
       print('❌ Error fetching user data: $e');
@@ -91,23 +85,27 @@ print("user ha va");
   }
 
   String getChatId(String id1, String id2, String itemType) {
-    final sorted = [id1, id2]..sort(); // Keep order consistent
+    final sorted = [id1, id2]..sort();
     return '${sorted[0]}-${sorted[1]}-$itemType';
   }
 
-
-  void _sendMessage() async {
-    final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+  void _sendMessage({String? text, String? base64Image}) async {
+    if ((text == null || text.trim().isEmpty) && base64Image == null) return;
 
     final chatId = getChatId(widget.currentUserId, widget.receiverId, widget.itemType);
 
     try {
       final newMessage = {
         'senderId': widget.currentUserId,
-        'text': text,
         'timestamp': FieldValue.serverTimestamp(),
+        'type': base64Image != null ? 'image' : 'text',
       };
+
+      if (base64Image != null) {
+        newMessage['image'] = base64Image;
+      } else {
+        newMessage['text'] = text as Object;
+      }
 
       await FirebaseFirestore.instance
           .collection('chats')
@@ -115,7 +113,6 @@ print("user ha va");
           .collection('messages')
           .add(newMessage);
 
-// ✅ Also update the parent chat document with the latest message
       await FirebaseFirestore.instance
           .collection('chats')
           .doc(chatId)
@@ -125,12 +122,12 @@ print("user ha va");
           widget.receiverId: true,
         },
         'itemType': widget.itemType,
-        'lastMessage': text,
-        'timestamp': FieldValue.serverTimestamp(), // This makes ChatList auto-refresh
+        'lastMessage': base64Image != null ? '[Image]' : text,
+        'timestamp': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-
       _messageController.clear();
+      _pendingImageBase64 = null;
 
       Future.delayed(const Duration(milliseconds: 100), () {
         if (_scrollController.hasClients) {
@@ -141,12 +138,43 @@ print("user ha va");
           );
         }
       });
-
     } catch (e) {
       print('❌ Error sending message: $e');
     }
   }
 
+  String? _pendingImageBase64; // 📌 holds the image before sending
+
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 60, // 📌 compress to reduce Firestore size
+        maxWidth: 800,    // 📌 resize for smaller storage
+      );
+
+      if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
+        final base64String = base64Encode(bytes);
+
+        setState(() {
+          _pendingImageBase64 = base64String;
+        });
+      }
+    } catch (e) {
+      print("❌ Error picking image: $e");
+    }
+  }
+
+  void _handleSend() {
+    if (_pendingImageBase64 != null) {
+      _sendMessage(base64Image: _pendingImageBase64);
+      setState(() => _pendingImageBase64 = null); // clear after sending
+    } else {
+      _sendMessage(text: _messageController.text);
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final currentUser = widget.currentUserId;
@@ -195,22 +223,18 @@ print("user ha va");
                   itemBuilder: (context, index) {
                     final msg = messages[index];
                     final isMe = msg['senderId'] == currentUser;
+                    final type = msg['type'] ?? 'text';
 
                     return Align(
-                      alignment: isMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
+                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.symmetric(vertical: 4),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.all(10),
                         constraints: BoxConstraints(
-                          maxWidth:
-                          MediaQuery.of(context).size.width * 0.75,
+                          maxWidth: MediaQuery.of(context).size.width * 0.75,
                         ),
                         decoration: BoxDecoration(
-                          color:
-                          isMe ? const Color(0xFFDCF8C6) : Colors.white,
+                          color: isMe ? const Color(0xFFDCF8C6) : Colors.white,
                           borderRadius: BorderRadius.only(
                             topLeft: const Radius.circular(16),
                             topRight: const Radius.circular(16),
@@ -225,8 +249,13 @@ print("user ha va");
                             ),
                           ],
                         ),
-                        child: Text(
-                          msg['text'],
+                        child: type == 'image'
+                            ? Image.memory(
+                          base64Decode(msg['image']),
+                          fit: BoxFit.cover,
+                        )
+                            : Text(
+                          msg['text'] ?? '',
                           style: const TextStyle(fontSize: 16),
                         ),
                       ),
@@ -254,6 +283,23 @@ print("user ha va");
               ),
               child: Row(
                 children: [
+                  IconButton(
+                    icon: const Icon(Icons.image, color: Colors.deepPurple),
+                    onPressed: _pickImageFromGallery,
+                  ),
+                  if (_pendingImageBase64 != null) // 📌 Show preview if image selected
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      height: 50,
+                      width: 50,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        image: DecorationImage(
+                          image: MemoryImage(base64Decode(_pendingImageBase64!)),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
                   Expanded(
                     child: TextField(
                       controller: _messageController,
@@ -265,10 +311,11 @@ print("user ha va");
                   ),
                   IconButton(
                     icon: const Icon(Icons.send, color: Colors.deepPurple),
-                    onPressed: _sendMessage,
+                    onPressed: _handleSend, // 📌 Now uses our combined send logic
                   ),
                 ],
-              ),
+              )
+
             ),
           ),
         ],
