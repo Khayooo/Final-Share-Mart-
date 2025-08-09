@@ -77,7 +77,10 @@ class ChatList extends StatelessWidget {
                     builder: (context, msgSnap) {
                       if (msgSnap.hasData && msgSnap.data!.docs.isNotEmpty) {
                         final msgDoc = msgSnap.data!.docs.first;
-                        final lastMsg = msgDoc['text'];
+                        final type = msgDoc['type'] ?? 'text';
+                        final lastMsg = type == 'image'
+                            ? '[Image]'
+                            : (msgDoc['text'] ?? '');
                         final timestamp = msgDoc['timestamp'];
 
                         if (timestamp is Timestamp) {
@@ -100,7 +103,11 @@ class ChatList extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           );
                         } else {
-                          return Text(lastMsg, maxLines: 1, overflow: TextOverflow.ellipsis);
+                          return Text(
+                            lastMsg,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          );
                         }
                       }
                       return const Text('No messages yet');
@@ -112,7 +119,8 @@ class ChatList extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (_) => ChatWithUserScreen(
                           currentUserId: currentUserId,
-                          receiverId: otherUserId, itemType: roleFilter,
+                          receiverId: otherUserId,
+                          itemType: roleFilter,
                         ),
                       ),
                     );
