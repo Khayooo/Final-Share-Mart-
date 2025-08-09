@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-
 import '../../../Model/DonateItemModel.dart';
 import '../Chat/ChatWithUserScreen.dart';
 
@@ -14,11 +14,15 @@ class DonateItemDetailScreen extends StatefulWidget {
   State<DonateItemDetailScreen> createState() => _DonateItemDetailScreenState();
 }
 
-class _DonateItemDetailScreenState extends State<DonateItemDetailScreen> with SingleTickerProviderStateMixin {
+class _DonateItemDetailScreenState extends State<DonateItemDetailScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
   late Animation<double> _scaleAnimation;
   final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
+  Map<String, dynamic>? _donorData;
+  bool _isLoadingDonor = true;
 
   @override
   void initState() {
@@ -38,6 +42,32 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen> with Si
     );
 
     _controller.forward();
+
+    _fetchDonorInfo(widget.item.userId);
+  }
+
+  Future<void> _fetchDonorInfo(String donorId) async {
+    try {
+      final ref = FirebaseDatabase.instance.ref().child("users").child(donorId);
+      final snapshot = await ref.get();
+      if (snapshot.exists && snapshot.value is Map) {
+        setState(() {
+          _donorData = Map<String, dynamic>.from(snapshot.value as Map);
+          _isLoadingDonor = false;
+        });
+      } else {
+        setState(() {
+          _donorData = null;
+          _isLoadingDonor = false;
+        });
+      }
+    } catch (e) {
+      print("Error fetching donor info: $e");
+      setState(() {
+        _donorData = null;
+        _isLoadingDonor = false;
+      });
+    }
   }
 
   @override
@@ -45,8 +75,6 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen> with Si
     _controller.dispose();
     super.dispose();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +105,7 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen> with Si
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Item Image
+                // Image
                 Hero(
                   tag: widget.item.uid,
                   child: Container(
@@ -106,7 +134,7 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen> with Si
                 ),
                 const SizedBox(height: 24),
 
-                // Item Title
+                // Title
                 Text(
                   widget.item.productName,
                   style: TextStyle(
@@ -115,8 +143,6 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen> with Si
                     color: Colors.deepPurple.shade800,
                   ),
                 ),
-                const SizedBox(height: 8),
-
                 const SizedBox(height: 24),
 
                 // Description
@@ -130,7 +156,7 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen> with Si
                 ),
                 const SizedBox(height: 24),
 
-// Price
+                // Price
                 _buildSectionHeader("Price"),
                 const SizedBox(height: 12),
                 _buildCard(
@@ -139,16 +165,26 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen> with Si
                     style: const TextStyle(fontSize: 16),
                   ),
                 ),
+                const SizedBox(height: 24),
 
-                // Donor Information
+                // Donor's Information
                 _buildSectionHeader("Donor's Information"),
                 const SizedBox(height: 12),
-                _buildCard(
+                _isLoadingDonor
+                    ? const Center(child: CircularProgressIndicator())
+                    : _donorData == null
+                    ? const Text("Donor information not available.")
+                    : _buildCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildInfoRow("Name",  "N/A"),
+                      _buildInfoRow("Name", _donorData!['name'] ?? "N/A"),
                       const SizedBox(height: 12),
+                      _buildInfoRow("Email", _donorData!['email'] ?? "N/A"),
+                      const SizedBox(height: 12),
+                      _buildInfoRow("Address", _donorData!['address'] ?? "No Address Saved"),
+                      const SizedBox(height: 12),
+                      _buildInfoRow("Phone", _donorData!['phone'] ?? "No Phone Number"),
                     ],
                   ),
                 ),
@@ -184,7 +220,7 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen> with Si
                           label: "SMS",
                           color: Colors.blue,
                           onPressed: () {
-                            // Implement SMS functionality
+                            // Implement SMS
                           },
                         ),
                       ),
@@ -195,13 +231,12 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen> with Si
                           label: "Call",
                           color: Colors.green,
                           onPressed: () {
-                            // Implement call functionality
+                            // Implement Call
                           },
                         ),
                       ),
                     ],
                   ),
-                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -210,91 +245,79 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen> with Si
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.deepPurple.shade800,
-      ),
-    );
-  }
+  Widget _buildSectionHeader(String title) => Text(
+    title,
+    style: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.bold,
+      color: Colors.deepPurple.shade800,
+    ),
+  );
 
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade700,
-            ),
+  Widget _buildInfoRow(String label, String value) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      SizedBox(
+        width: 80,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
           ),
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.w500),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
 
   Widget _buildActionButton({
     required IconData icon,
     required String label,
     required Color color,
     required VoidCallback onPressed,
-  }) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color.withOpacity(0.1),
-        foregroundColor: color,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+  }) =>
+      ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color.withOpacity(0.1),
+          foregroundColor: color,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          elevation: 0,
         ),
-        elevation: 0,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 20),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 20),
+            const SizedBox(width: 8),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+      );
 
-  Widget _buildCard({required Widget child}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
+  Widget _buildCard({required Widget child}) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 8,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: child,
+  );
 }
