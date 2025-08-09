@@ -230,12 +230,11 @@ class _HomePageState extends State<HomePage>
   }
 
   String getChatId(String id1, String id2, String itemType) {
-    final sorted = [id1, id2]..sort(); // Keep order consistent
+    final sorted = [id1, id2]..sort();
     return '${sorted[0]}-${sorted[1]}-$itemType';
   }
 
-
-  void _sendMessage(receiverId) async {
+  void _sendMessage(String receiverId) async {
     final text = messageController.text.trim();
     if (text.isEmpty) return;
 
@@ -244,9 +243,12 @@ class _HomePageState extends State<HomePage>
     try {
       final newMessage = {
         'senderId': currentUserId,
-        'text': text,
         'timestamp': FieldValue.serverTimestamp(),
+        'type':  'text',
       };
+
+
+        newMessage['text'] = text ;
 
       await FirebaseFirestore.instance
           .collection('chats')
@@ -254,7 +256,6 @@ class _HomePageState extends State<HomePage>
           .collection('messages')
           .add(newMessage);
 
-// ✅ Also update the parent chat document with the latest message
       await FirebaseFirestore.instance
           .collection('chats')
           .doc(chatId)
@@ -264,10 +265,9 @@ class _HomePageState extends State<HomePage>
           receiverId: true,
         },
         'itemType': 'Sell',
-        'lastMessage': text,
-        'timestamp': FieldValue.serverTimestamp(), // This makes ChatList auto-refresh
+        'lastMessage':  text,
+        'timestamp': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-
 
       messageController.clear();
 
@@ -280,14 +280,10 @@ class _HomePageState extends State<HomePage>
           );
         }
       });
-
     } catch (e) {
       print('❌ Error sending message: $e');
     }
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
