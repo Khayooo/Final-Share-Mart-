@@ -71,25 +71,60 @@ class _AddItemScreenState extends State<AddItemScreen> {
       String path = widget.isDonation ? 'donations' : 'items';
 
       ItemModel itemModel = ItemModel(
-        productName: _nameController.text,
-        productPrice: _priceController.text,
-        productDescription: _descriptionController.text,
+        productName: _nameController.text.trim(),
+        productPrice: _priceController.text.trim(),
+        productDescription: _descriptionController.text.trim(),
         image: _base64image ?? '',
         uid: uid,
         itemType: widget.itemType,
         userId: FirebaseAuth.instance.currentUser!.uid,
-        timestamp: DateTime.now().millisecondsSinceEpoch, // ✅ add this line
+        timestamp: DateTime.now().millisecondsSinceEpoch,
       );
 
-
+      // 1️⃣ Save item
       await _ref.child(path).child(uid).set(itemModel.toMap());
 
+      // 2️⃣ Check all requests for this product
+      DatabaseReference requestRef = FirebaseDatabase.instance.ref().child("request product");
+
+      DatabaseEvent event = await requestRef.once();
+      if (event.snapshot.exists) {
+        Map<dynamic, dynamic> requests = event.snapshot.value as Map<dynamic, dynamic>;
+
+        requests.forEach((reqId, reqData) async {
+          String requestedName = (reqData["name"] ?? "").toString().toLowerCase();
+          String requesterId = reqData["userId"] ?? "";
+          String req = requestedName.trim().toLowerCase();
+          String posted = _nameController.text.trim().toLowerCase();
+
+          if (req.contains(posted) || posted.contains(req)) {
+            print('Notification');
+
+            // 3️⃣ Send notification
+            String notiId = FirebaseDatabase.instance.ref().child("notifications").push().key!;
+
+            await FirebaseDatabase.instance.ref().child("notifications").child(notiId).set({
+              "id": notiId,
+              "senderId": FirebaseAuth.instance.currentUser!.uid,
+              "receiverId": requesterId,
+              "message": "A new ${_nameController.text} has been posted that matches your request!",
+              "productId": uid,
+              "timestamp": DateTime.now().millisecondsSinceEpoch,
+              "itemType": widget.itemType,
+              "isRead": false,
+            });
+          }
+        });
+      }
+
+      // 4️⃣ Show success
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${widget.itemType} item added successfully!'),
           backgroundColor: Colors.green,
         ),
       );
+
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
