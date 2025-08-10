@@ -23,6 +23,7 @@ class _AccountScreenState extends State<AccountScreen>
   late Animation<double> _opacityAnimation;
   late Animation<double> _scaleAnimation;
 
+  final currentUserId = FirebaseAuth.instance.currentUser!.uid;
   final FirebaseDatabase _database = FirebaseDatabase.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isLoading = true;
@@ -267,11 +268,11 @@ class _AccountScreenState extends State<AccountScreen>
                 _buildAccountOption(
                   icon: Icons.star,
                   title: "Reviews & Ratings",
-                  subtitle: "See your donation history",
+                  subtitle: "Give your experience with our app",
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const Reviews()),
+                      MaterialPageRoute(builder: (_) => Reviews(currentUserId: currentUserId,)),
                     );
                   },
                 ),
