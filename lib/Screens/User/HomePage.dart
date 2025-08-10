@@ -299,7 +299,7 @@ class _HomePageState extends State<HomePage>
           IconButton(
             icon: const Icon(Icons.notifications_none_rounded, color: Colors.deepPurple),
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const Notifications()));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationsPage()));
             },
           ),
         ],
