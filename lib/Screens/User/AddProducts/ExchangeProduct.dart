@@ -157,6 +157,7 @@ class _ExchangeProductState extends State<ExchangeProduct> {
 
           await _databaseRef.child('exchange_products').child(key).set(exchangeData);
 
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Exchange offer posted successfully!'),
