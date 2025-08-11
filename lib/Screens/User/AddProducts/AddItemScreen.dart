@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-
 class AddItemScreen extends StatefulWidget {
   final String itemType;
   final bool isDonation;
@@ -33,10 +32,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   String? _base64image;
   bool _isLoading = false;
 
-
   final currentUser = FirebaseAuth.instance.currentUser;
-
-
 
   @override
   void initState() {
@@ -85,34 +81,49 @@ class _AddItemScreenState extends State<AddItemScreen> {
       await _ref.child(path).child(uid).set(itemModel.toMap());
 
       // 2️⃣ Check all requests for this product
-      DatabaseReference requestRef = FirebaseDatabase.instance.ref().child("request product");
+      DatabaseReference requestRef = FirebaseDatabase.instance.ref().child(
+        "request product",
+      );
 
       DatabaseEvent event = await requestRef.once();
       if (event.snapshot.exists) {
-        Map<dynamic, dynamic> requests = event.snapshot.value as Map<dynamic, dynamic>;
+        Map<dynamic, dynamic> requests =
+            event.snapshot.value as Map<dynamic, dynamic>;
 
         requests.forEach((reqId, reqData) async {
-          String requestedName = (reqData["name"] ?? "").toString().toLowerCase();
+          String requestedName =
+              (reqData["name"] ?? "").toString().toLowerCase();
           String requesterId = reqData["userId"] ?? "";
           String req = requestedName.trim().toLowerCase();
           String posted = _nameController.text.trim().toLowerCase();
+          if ((req.contains(posted) || posted.contains(req)) &&
+              FirebaseAuth.instance.currentUser!.uid != requesterId) {
 
-          if (req.contains(posted) || posted.contains(req)) {
             print('Notification');
 
             // 3️⃣ Send notification
-            String notiId = FirebaseDatabase.instance.ref().child("notifications").push().key!;
+            String notiId =
+                FirebaseDatabase.instance
+                    .ref()
+                    .child("notifications")
+                    .push()
+                    .key!;
 
-            await FirebaseDatabase.instance.ref().child("notifications").child(notiId).set({
-              "id": notiId,
-              "senderId": FirebaseAuth.instance.currentUser!.uid,
-              "receiverId": requesterId,
-              "message": "A new ${_nameController.text} has been posted that matches your request!",
-              "productId": uid,
-              "timestamp": DateTime.now().millisecondsSinceEpoch,
-              "itemType": widget.itemType,
-              "isRead": false,
-            });
+            await FirebaseDatabase.instance
+                .ref()
+                .child("notifications")
+                .child(notiId)
+                .set({
+                  "id": notiId,
+                  "senderId": FirebaseAuth.instance.currentUser!.uid,
+                  "receiverId": requesterId,
+                  "message":
+                      "A new ${_nameController.text} has been posted that matches your request!",
+                  "productId": uid,
+                  "timestamp": DateTime.now().millisecondsSinceEpoch,
+                  "itemType": widget.itemType,
+                  "isRead": false,
+                });
           }
         });
       }
@@ -128,10 +139,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -172,167 +180,189 @@ class _AddItemScreenState extends State<AddItemScreen> {
         ),
         title: Text(
           'Add ${widget.itemType} Item',
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.deepPurple))
-          : SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Image Picker
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.deepPurple.shade200,
-                      width: 1,
-                    ),
-                  ),
-                  child: _selectedImage == null
-                      ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+      body:
+          _isLoading
+              ? const Center(
+                child: CircularProgressIndicator(color: Colors.deepPurple),
+              )
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Icon(
-                        Icons.add_a_photo,
-                        size: 48,
-                        color: Colors.deepPurple.shade300,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Tap to add image',
-                        style: TextStyle(
-                          color: Colors.deepPurple.shade400,
-                          fontSize: 16,
+                      // Image Picker
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: Container(
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: Colors.deepPurple.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.deepPurple.shade200,
+                              width: 1,
+                            ),
+                          ),
+                          child:
+                              _selectedImage == null
+                                  ? Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.add_a_photo,
+                                        size: 48,
+                                        color: Colors.deepPurple.shade300,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Tap to add image',
+                                        style: TextStyle(
+                                          color: Colors.deepPurple.shade400,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                  : ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.file(
+                                      _selectedImage!,
+                                      fit: BoxFit.fitHeight,
+                                      width: double.infinity,
+                                    ),
+                                  ),
                         ),
                       ),
+                      const SizedBox(height: 24),
+
+                      // Product Name
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          labelText: 'Item Name',
+                          prefixIcon: Icon(
+                            Icons.shopping_bag,
+                            color: Colors.deepPurple,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter item name';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Price Field (Disabled for donations)
+                      TextFormField(
+                        controller: _priceController,
+                        keyboardType: TextInputType.number,
+                        enabled: !widget.isDonation,
+                        decoration: InputDecoration(
+                          labelText:
+                              widget.isDonation
+                                  ? 'Price (Fixed to Free)'
+                                  : 'Price (Rs.)',
+                          prefixIcon: Icon(
+                            Icons.money,
+                            color: Colors.deepPurple,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter price';
+                          }
+                          if (!widget.isDonation &&
+                              double.tryParse(value) == null) {
+                            return 'Please enter valid price';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Description
+                      TextFormField(
+                        controller: _descriptionController,
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          labelText: 'Description',
+                          alignLabelWithHint: true,
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.only(bottom: 60),
+                            child: Icon(
+                              Icons.description,
+                              color: Colors.deepPurple,
+                            ),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter description';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Submit Button
+                      ElevatedButton.icon(
+                        onPressed: _submitForm,
+                        icon: const Icon(Icons.add_shopping_cart),
+                        label: Text(
+                          'Add ${widget.itemType} Item',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          // elevation: 4,
+                        ),
+                      ),
+
+                      // Donation Info Note
+                      if (widget.isDonation)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(
+                            'Note: Donated items will be listed for free and cannot be sold',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.deepPurple.shade700,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
                     ],
-                  )
-                      : ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      _selectedImage!,
-                      fit: BoxFit.fitHeight,
-                      width: double.infinity,
-                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Product Name
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Item Name',
-                  prefixIcon: Icon(Icons.shopping_bag, color: Colors.deepPurple),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter item name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Price Field (Disabled for donations)
-              TextFormField(
-                controller: _priceController,
-                keyboardType: TextInputType.number,
-                enabled: !widget.isDonation,
-                decoration: InputDecoration(
-                  labelText: widget.isDonation ? 'Price (Fixed to Free)' : 'Price (Rs.)',
-                  prefixIcon: Icon(Icons.money, color: Colors.deepPurple),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter price';
-                  }
-                  if (!widget.isDonation && double.tryParse(value) == null) {
-                    return 'Please enter valid price';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Description
-              TextFormField(
-                controller: _descriptionController,
-                maxLines: 4,
-                decoration: InputDecoration(
-                  labelText: 'Description',
-                  alignLabelWithHint: true,
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.only(bottom: 60),
-                    child: Icon(Icons.description, color: Colors.deepPurple),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter description';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-
-              // Submit Button
-              ElevatedButton.icon(
-                onPressed: _submitForm,
-                icon: const Icon(Icons.add_shopping_cart),
-                label: Text(
-                  'Add ${widget.itemType} Item',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  // elevation: 4,
-                ),
-
-              ),
-
-              // Donation Info Note
-              if (widget.isDonation)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Text(
-                    'Note: Donated items will be listed for free and cannot be sold',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.deepPurple.shade700,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
