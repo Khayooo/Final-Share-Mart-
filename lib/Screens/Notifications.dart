@@ -27,44 +27,46 @@ class NotificationsPage extends StatelessWidget {
             .onValue,
         builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           Map<dynamic, dynamic>? data =
           snapshot.data!.snapshot.value as Map?;
           if (data == null) {
-            return Center(child: Text("No notifications"));
+            return const Center(child: Text("No notifications"));
           }
 
           final notifications = data.values.toList()
             ..sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
 
+          final keys = data.keys.toList();
+
           return ListView.builder(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             itemCount: notifications.length,
             itemBuilder: (context, index) {
-              final notif = notifications[index];
-              final notifId = data.keys.elementAt(index);
+              final notif = Map<String, dynamic>.from(notifications[index]);
+              final notifId = keys[index];
 
               String formattedDate = DateFormat('dd MMM yyyy, hh:mm a').format(
                 DateTime.fromMillisecondsSinceEpoch(notif['timestamp']),
               );
 
-              bool isUnread = notif['read'] == false;
+              bool isRead = notif['isRead'] == true;
 
               return Card(
                 elevation: 3,
-                color: isUnread ? Colors.blue.shade50 : Colors.white,
-                margin: EdgeInsets.symmetric(vertical: 8),
+                color: isRead ? Colors.white : Colors.blue.shade50,
+                margin: const EdgeInsets.symmetric(vertical: 8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: ListTile(
                   contentPadding:
-                  EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   leading: Icon(
                     Icons.notifications,
-                    color: isUnread ? Colors.blueAccent : Colors.grey,
+                    color: isRead ? Colors.grey : Colors.blueAccent,
                   ),
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -73,22 +75,21 @@ class NotificationsPage extends StatelessWidget {
                         child: Text(
                           notif['message'] ?? "No message",
                           style: TextStyle(
-                            fontWeight: isUnread
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+                            fontWeight:
+                            isRead ? FontWeight.normal : FontWeight.bold,
                           ),
                         ),
                       ),
                       Container(
-                        padding:
-                        EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: _getBadgeColor(notif['itemType']),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           notif['itemType'] ?? "",
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -101,14 +102,24 @@ class NotificationsPage extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 6.0),
                     child: Text(
                       formattedDate,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      style:
+                      TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () async {
+                      await notifRef.child(notifId).remove();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Notification deleted')),
+                      );
+                    },
                   ),
                   onTap: () async {
                     // Mark as read
-                    await notifRef.child(notifId).update({"read": true});
+                    await notifRef.child(notifId).update({"isRead": true});
 
-                    // Fetch and print before navigation
+                    // Open the detail screen
                     await _openDetailScreen(
                       context,
                       notif['itemType'],
@@ -152,9 +163,9 @@ class NotificationsPage extends StatelessWidget {
         break;
       case "sell":
         dbPath = "items";
-        screenBuilder = (item) =>
-             ItemDetailsScreen( item: item,);
+        screenBuilder = (item) => ItemDetailsScreen(item: item);
         break;
+
       default:
         return;
     }
@@ -166,7 +177,6 @@ class NotificationsPage extends StatelessWidget {
       final itemMap =
       Map<String, dynamic>.from(event.snapshot.value as Map);
 
-      print("Fetched item from DB: $itemMap"); // ✅ Now prints only the item data
 
       Navigator.push(
         context,
@@ -178,5 +188,4 @@ class NotificationsPage extends StatelessWidget {
       print("Item not found in DB.");
     }
   }
-
 }
