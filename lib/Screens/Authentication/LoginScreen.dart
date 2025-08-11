@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fypnewproject/Screens/Admin/AdminPage.dart';
 import 'package:fypnewproject/admin%20panel/admin_panel.dart';
 import '../User/HomePage.dart';
 import 'RegisterNewUser.dart';
@@ -84,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => isAdmin ? const AdminPanel() : const HomePage(),
+            builder: (context) => isAdmin ? const AdminPanelScreen() : const HomePage(),
           ),
         );
       }
