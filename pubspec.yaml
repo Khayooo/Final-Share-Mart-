@@ -56,6 +56,8 @@ dependencies:
   url_launcher: any
   uuid: any
   cached_network_image: any
+  firebase_analytics: any
+  firebase_crashlytics: any
 
 
 dev_dependencies:
