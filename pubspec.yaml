@@ -58,6 +58,7 @@ dependencies:
   cached_network_image: any
   firebase_analytics: any
   firebase_crashlytics: any
+  open_filex: any
 
 
 dev_dependencies:
