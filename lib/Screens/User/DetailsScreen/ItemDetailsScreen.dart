@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fypnewproject/Screens/User/Chat/ChatWithUserScreen.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 class ItemDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> item;
 
@@ -42,6 +42,28 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen>
     _controller.forward();
 
     _fetchSellerInfo(widget.item['userId']); // Fetch seller info
+  }
+
+  Future<void> _sendSMS(String phoneNumber) async {
+    final Uri smsUri = Uri(scheme: 'sms', path: phoneNumber);
+    if (await canLaunchUrl(smsUri)) {
+      await launchUrl(smsUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not launch SMS app")),
+      );
+    }
+  }
+
+  Future<void> _makeCall(String phoneNumber) async {
+    final Uri callUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(callUri)) {
+      await launchUrl(callUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not launch Phone Dialer")),
+      );
+    }
   }
 
   Future<void> _fetchSellerInfo(String sellerId) async {
@@ -237,6 +259,13 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen>
                           color: Colors.blue,
                           onPressed: () {
                             // Implement SMS functionality
+                            if (_sellerData != null && _sellerData!['phone'] != null) {
+                              _sendSMS(_sellerData!['phone']);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Phone number not available")),
+                              );
+                            }
                           },
                         ),
                       ),
@@ -248,6 +277,13 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen>
                           color: Colors.green,
                           onPressed: () {
                             // Implement call functionality
+                            if (_sellerData != null && _sellerData!['phone'] != null) {
+                              _makeCall(_sellerData!['phone']);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Phone number not available")),
+                              );
+                            }
                           },
                         ),
                       ),
