@@ -4,6 +4,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import '../../../Model/DonateItemModel.dart';
 import '../Chat/ChatWithUserScreen.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 class DonateItemDetailScreen extends StatefulWidget {
   final DonateItemModel item;
@@ -45,6 +47,31 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen>
 
     _fetchDonorInfo(widget.item.userId);
   }
+
+  Future<void> _sendSMS(String phoneNumber) async {
+    final Uri smsUri = Uri(scheme: 'sms', path: phoneNumber);
+    if (await canLaunchUrl(smsUri)) {
+      await launchUrl(smsUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not launch SMS app")),
+      );
+    }
+  }
+
+  Future<void> _makeCall(String phoneNumber) async {
+    final Uri callUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(callUri)) {
+      await launchUrl(callUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not launch Phone Dialer")),
+      );
+    }
+  }
+
+
+
 
   Future<void> _fetchDonorInfo(String donorId) async {
     try {
@@ -220,7 +247,13 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen>
                           label: "SMS",
                           color: Colors.blue,
                           onPressed: () {
-                            // Implement SMS
+                            if (_donorData != null && _donorData!['phone'] != null) {
+                              _sendSMS(_donorData!['phone']);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Phone number not available")),
+                              );
+                            }
                           },
                         ),
                       ),
@@ -231,7 +264,13 @@ class _DonateItemDetailScreenState extends State<DonateItemDetailScreen>
                           label: "Call",
                           color: Colors.green,
                           onPressed: () {
-                            // Implement Call
+                            if (_donorData != null && _donorData!['phone'] != null) {
+                              _makeCall(_donorData!['phone']);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Phone number not available")),
+                              );
+                            }
                           },
                         ),
                       ),
