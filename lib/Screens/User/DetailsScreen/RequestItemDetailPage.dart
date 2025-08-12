@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../Chat/ChatWithUserScreen.dart';
 
@@ -24,6 +25,31 @@ class _RequestedItemDetailPageState extends State<RequestedItemDetailPage> {
     super.initState();
     _fetchRequesterInfo(widget.item['userId']);
   }
+
+  Future<void> _sendSMS(String phoneNumber) async {
+    final Uri smsUri = Uri(scheme: 'sms', path: phoneNumber);
+    if (await canLaunchUrl(smsUri)) {
+      await launchUrl(smsUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not launch SMS app")),
+      );
+    }
+  }
+
+  Future<void> _makeCall(String phoneNumber) async {
+    final Uri callUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(callUri)) {
+      await launchUrl(callUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not launch Phone Dialer")),
+      );
+    }
+  }
+
+
+
 
   Future<void> _fetchRequesterInfo(String userId) async {
     try {
@@ -146,7 +172,13 @@ class _RequestedItemDetailPageState extends State<RequestedItemDetailPage> {
                       label: "SMS",
                       color: Colors.blue,
                       onPressed: () {
-                        // TODO: Implement SMS functionality
+                        if (_requesterData != null && _requesterData!['phone'] != null) {
+                          _sendSMS(_requesterData!['phone']);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Phone number not available")),
+                          );
+                        }
                       },
                     ),
                   ),
@@ -157,7 +189,13 @@ class _RequestedItemDetailPageState extends State<RequestedItemDetailPage> {
                       label: "Call",
                       color: Colors.green,
                       onPressed: () {
-                        // TODO: Implement call functionality
+                        if (_requesterData != null && _requesterData!['phone'] != null) {
+                          _makeCall(_requesterData!['phone']);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Phone number not available")),
+                          );
+                        }
                       },
                     ),
                   ),
