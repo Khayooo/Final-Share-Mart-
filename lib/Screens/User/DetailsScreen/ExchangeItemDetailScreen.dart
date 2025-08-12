@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../Model/ExchangeItemModel.dart';
 import '../Chat/ChatWithUserScreen.dart';
 
@@ -28,6 +29,30 @@ class _ExchangeItemDetailScreenState extends State<ExchangeItemDetailScreen> {
     super.initState();
     _fetchExchangerInfo(widget.item.userId);
   }
+
+  Future<void> _sendSMS(String phoneNumber) async {
+    final Uri smsUri = Uri(scheme: 'sms', path: phoneNumber);
+    if (await canLaunchUrl(smsUri)) {
+      await launchUrl(smsUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not launch SMS app")),
+      );
+    }
+  }
+
+  Future<void> _makeCall(String phoneNumber) async {
+    final Uri callUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(callUri)) {
+      await launchUrl(callUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not launch Phone Dialer")),
+      );
+    }
+  }
+
+
 
   Future<void> _fetchExchangerInfo(String userId) async {
     try {
@@ -172,7 +197,13 @@ class _ExchangeItemDetailScreenState extends State<ExchangeItemDetailScreen> {
                       label: "SMS",
                       color: Colors.blue,
                       onPressed: () {
-                        // Implement SMS
+                        if (_exchangerData != null && _exchangerData!['phone'] != null) {
+                          _sendSMS(_exchangerData!['phone']);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Phone number not available")),
+                          );
+                        }
                       },
                     ),
                   ),
@@ -183,7 +214,13 @@ class _ExchangeItemDetailScreenState extends State<ExchangeItemDetailScreen> {
                       label: "Call",
                       color: Colors.green,
                       onPressed: () {
-                        // Implement Call
+                        if (_exchangerData != null && _exchangerData!['phone'] != null) {
+                          _makeCall(_exchangerData!['phone']);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Phone number not available")),
+                          );
+                        }
                       },
                     ),
                   ),
