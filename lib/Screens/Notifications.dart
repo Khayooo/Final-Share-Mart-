@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import '../Model/DonateItemModel.dart';
 import 'User/DetailsScreen/DonateItemDetailScreen.dart';
 import 'User/DetailsScreen/ItemDetailsScreen.dart';
@@ -17,36 +16,43 @@ class NotificationsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Notifications"),
+        title: const Text("Notifications"),
         centerTitle: true,
       ),
-      body: StreamBuilder(
+      body: StreamBuilder<DatabaseEvent>(
         stream: notifRef
             .orderByChild('receiverId')
             .equalTo(currentUserId)
             .onValue,
-        builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+        builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          Map<dynamic, dynamic>? data =
-          snapshot.data!.snapshot.value as Map?;
-          if (data == null) {
+          final rawData =
+          snapshot.data!.snapshot.value as Map<dynamic, dynamic>?;
+
+          if (rawData == null || rawData.isEmpty) {
             return const Center(child: Text("No notifications"));
           }
 
-          final notifications = data.values.toList()
-            ..sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+          // Combine key + data, then sort
+          final notificationsList = rawData.entries
+              .map((e) => {
+            "id": e.key,
+            ...Map<String, dynamic>.from(e.value as Map),
+          })
+              .toList();
 
-          final keys = data.keys.toList();
+          notificationsList.sort((a, b) =>
+              (b['timestamp'] as int).compareTo(a['timestamp'] as int));
 
           return ListView.builder(
             padding: const EdgeInsets.all(10),
-            itemCount: notifications.length,
+            itemCount: notificationsList.length,
             itemBuilder: (context, index) {
-              final notif = Map<String, dynamic>.from(notifications[index]);
-              final notifId = keys[index];
+              final notif = notificationsList[index];
+              final notifId = notif['id'];
 
               String formattedDate = DateFormat('dd MMM yyyy, hh:mm a').format(
                 DateTime.fromMillisecondsSinceEpoch(notif['timestamp']),
@@ -75,8 +81,9 @@ class NotificationsPage extends StatelessWidget {
                         child: Text(
                           notif['message'] ?? "No message",
                           style: TextStyle(
-                            fontWeight:
-                            isRead ? FontWeight.normal : FontWeight.bold,
+                            fontWeight: isRead
+                                ? FontWeight.normal
+                                : FontWeight.bold,
                           ),
                         ),
                       ),
@@ -116,15 +123,15 @@ class NotificationsPage extends StatelessWidget {
                     },
                   ),
                   onTap: () async {
-                    // Mark as read
                     await notifRef.child(notifId).update({"isRead": true});
 
-                    // Open the detail screen
-                    await _openDetailScreen(
-                      context,
-                      notif['itemType'],
-                      notif['productId'],
-                    );
+                    if (notif['itemType']?.toLowerCase() != "admin") {
+                      await _openDetailScreen(
+                        context,
+                        notif['itemType'],
+                        notif['productId'],
+                      );
+                    }
                   },
                 ),
               );
@@ -143,6 +150,8 @@ class NotificationsPage extends StatelessWidget {
         return Colors.orange;
       case "request":
         return Colors.blueAccent;
+      case "admin":
+        return Colors.purple;
       default:
         return Colors.grey;
     }
@@ -150,7 +159,7 @@ class NotificationsPage extends StatelessWidget {
 
   Future<void> _openDetailScreen(
       BuildContext context, String? itemType, String productId) async {
-    if (itemType == null) return;
+    if (itemType == null || productId.isEmpty) return;
 
     String dbPath = '';
     Widget Function(Map<String, dynamic>) screenBuilder;
@@ -165,7 +174,6 @@ class NotificationsPage extends StatelessWidget {
         dbPath = "items";
         screenBuilder = (item) => ItemDetailsScreen(item: item);
         break;
-
       default:
         return;
     }
@@ -176,7 +184,6 @@ class NotificationsPage extends StatelessWidget {
     if (event.snapshot.value != null) {
       final itemMap =
       Map<String, dynamic>.from(event.snapshot.value as Map);
-
 
       Navigator.push(
         context,
