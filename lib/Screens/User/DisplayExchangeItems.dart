@@ -174,15 +174,6 @@ class _DisplayExchangeItemsState extends State<DisplayExchangeItems> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    item['desiredProductName'] ?? '',
-                                    style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
                                     item['desiredProductDescription'] ??
                                         '',
                                     style: const TextStyle(
