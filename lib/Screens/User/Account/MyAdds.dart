@@ -166,26 +166,26 @@ class _MyAddsScreenState extends State<MyAddsScreen> {
           ),
         );
         break;
-    case 'Donate':
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DonateItemDetailScreen(
-            item: DonateItemModel.fromMap(item),
+      case 'Donate':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DonateItemDetailScreen(
+              item: DonateItemModel.fromMap(item),
+            ),
           ),
-        ),
-      );
-      break;
-    case 'Exchange':
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ExchangeItemDetailScreen(
-            item: ExchangeItemModel.fromMap(item), currentUserId: currentUserId,
+        );
+        break;
+      case 'Exchange':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ExchangeItemDetailScreen(
+                item: ExchangeItemModel.fromMap(item)
+            ),
           ),
-        ),
-      );
-      break;
+        );
+        break;
       case 'Request item':
         Navigator.push(
           context,
