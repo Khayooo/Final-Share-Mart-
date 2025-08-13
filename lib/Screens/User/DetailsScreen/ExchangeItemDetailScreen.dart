@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -8,12 +9,12 @@ import '../Chat/ChatWithUserScreen.dart';
 
 class ExchangeItemDetailScreen extends StatefulWidget {
   final ExchangeItemModel item;
-  final String currentUserId;
+
 
   const ExchangeItemDetailScreen({
     Key? key,
     required this.item,
-    required this.currentUserId,
+
   }) : super(key: key);
 
   @override
@@ -23,7 +24,7 @@ class ExchangeItemDetailScreen extends StatefulWidget {
 class _ExchangeItemDetailScreenState extends State<ExchangeItemDetailScreen> {
   Map<String, dynamic>? _exchangerData;
   bool _isLoadingExchanger = true;
-
+  String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
   @override
   void initState() {
     super.initState();
@@ -168,7 +169,7 @@ class _ExchangeItemDetailScreenState extends State<ExchangeItemDetailScreen> {
             const SizedBox(height: 32),
 
             // Action Buttons
-            if (widget.item.userId != widget.currentUserId)
+            if (widget.item.userId != currentUserId!)
               Row(
                 children: [
                   Expanded(
@@ -181,7 +182,7 @@ class _ExchangeItemDetailScreenState extends State<ExchangeItemDetailScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => ChatWithUserScreen(
-                              currentUserId: widget.currentUserId,
+                              currentUserId: currentUserId!,
                               receiverId: widget.item.userId,
                               itemType: 'exchange',
                             ),
