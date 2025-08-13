@@ -180,18 +180,6 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen>
                     color: Colors.deepPurple.shade800,
                   ),
                 ),
-                const SizedBox(height: 8),
-                // Location
-                Row(
-                  children: [
-                    Icon(Icons.location_on, size: 18, color: Colors.grey.shade600),
-                    const SizedBox(width: 4),
-                    Text(
-                      'unknown',
-                      style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 24),
 
                 // Description
