@@ -1,10 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../Chat/ChatWithUserScreen.dart';
 
 class RequestedItemDetailPage extends StatefulWidget {
@@ -48,9 +46,6 @@ class _RequestedItemDetailPageState extends State<RequestedItemDetailPage> {
     }
   }
 
-
-
-
   Future<void> _fetchRequesterInfo(String userId) async {
     try {
       final ref = FirebaseDatabase.instance.ref().child('users').child(userId);
@@ -86,37 +81,33 @@ class _RequestedItemDetailPageState extends State<RequestedItemDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Requested Item Detail"),
+        title: const Text(
+          "Requested Item Detail",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.deepPurple,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Item details...
-            Text(
-              widget.item['name'] ?? '',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              widget.item['description'] ?? '',
-              style: const TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 12),
-            Text("Type: ${widget.item['type'] ?? 'N/A'}"),
-            const SizedBox(height: 8),
-            Text("Posted on: $formattedDate"),
-            const SizedBox(height: 24),
+            _infoRow("Posted on:", formattedDate),
+            const Divider(height: 30),
 
-            // Requester Information Section
-            const Text(
+            _infoRow("Item Name:", widget.item['name'] ?? 'N/A'),
+            _infoRow("Description:", widget.item['description'] ?? 'N/A'),
+            _infoRow("Type:", widget.item['type'] ?? 'Request'),
+            const Divider(height: 30),
+
+            const SizedBox(height: 8),
+            Text(
               "Requester Information",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
+                color: Colors.deepPurple.shade800,
               ),
             ),
             const SizedBox(height: 12),
@@ -125,24 +116,18 @@ class _RequestedItemDetailPageState extends State<RequestedItemDetailPage> {
                 ? const Center(child: CircularProgressIndicator())
                 : (_requesterData == null
                 ? const Text("Requester information not available.")
-                : _buildInfoCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInfoRow("Name", _requesterData!['name'] ?? "N/A"),
-                  const SizedBox(height: 10),
-                  _buildInfoRow("Email", _requesterData!['email'] ?? "N/A"),
-                  const SizedBox(height: 10),
-                  _buildInfoRow("Address", _requesterData!['address'] ?? "N/A"),
-                  const SizedBox(height: 10),
-                  _buildInfoRow("Phone", _requesterData!['phone'] ?? "N/A"),
-                ],
-              ),
+                : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _infoRow("Name:", _requesterData!['name'] ?? "N/A"),
+                _infoRow("Email:", _requesterData!['email'] ?? "N/A"),
+                _infoRow("Address:", _requesterData!['address'] ?? "N/A"),
+                _infoRow("Phone:", _requesterData!['phone'] ?? "N/A"),
+              ],
             )),
 
             const SizedBox(height: 32),
 
-            // Action buttons...
             if (widget.item['userId'] != currentUserId)
               Row(
                 children: [
@@ -201,54 +186,33 @@ class _RequestedItemDetailPageState extends State<RequestedItemDetailPage> {
                   ),
                 ],
               ),
-
-            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
+  Widget _infoRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w500),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoCard({required Widget child}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 14),
+            ),
           ),
         ],
       ),
-      child: child,
     );
   }
 
