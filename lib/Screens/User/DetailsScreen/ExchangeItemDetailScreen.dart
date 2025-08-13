@@ -10,21 +10,21 @@ import '../Chat/ChatWithUserScreen.dart';
 class ExchangeItemDetailScreen extends StatefulWidget {
   final ExchangeItemModel item;
 
-
   const ExchangeItemDetailScreen({
     Key? key,
     required this.item,
-
   }) : super(key: key);
 
   @override
-  State<ExchangeItemDetailScreen> createState() => _ExchangeItemDetailScreenState();
+  State<ExchangeItemDetailScreen> createState() =>
+      _ExchangeItemDetailScreenState();
 }
 
 class _ExchangeItemDetailScreenState extends State<ExchangeItemDetailScreen> {
   Map<String, dynamic>? _exchangerData;
   bool _isLoadingExchanger = true;
   String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
   @override
   void initState() {
     super.initState();
@@ -52,8 +52,6 @@ class _ExchangeItemDetailScreenState extends State<ExchangeItemDetailScreen> {
       );
     }
   }
-
-
 
   Future<void> _fetchExchangerInfo(String userId) async {
     try {
@@ -125,19 +123,53 @@ class _ExchangeItemDetailScreenState extends State<ExchangeItemDetailScreen> {
 
             const SizedBox(height: 16),
 
-            _infoRow('Posted on:', formattedDate),
-            const Divider(height: 30),
+            // Posted On
+            _buildCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _infoRow('Posted on:', formattedDate),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
 
-            _infoRow('Product Name:', widget.item.productName),
-            _infoRow('Product Description:', widget.item.productDescription),
-            const Divider(height: 30),
+            // Product Details
+            _buildCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _infoRow('Product Name:', widget.item.productName),
+                  _infoRow(
+                      'Product Description:', widget.item.productDescription),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
 
-            _infoRow('Wants to Exchange With:', widget.item.desiredProductName),
-            _infoRow('Exchange Product Description:', widget.item.desiredProductDescription),
-            const Divider(height: 30),
+            // Wants to Exchange Section
+            _buildCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _infoRow('Wants to Exchange With:',
+                      widget.item.desiredProductName),
+                  _infoRow('Exchange Product Description:',
+                      widget.item.desiredProductDescription),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
 
-            _infoRow('Status:', widget.item.status),
-
+            // Status
+            _buildCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _infoRow('Status:', widget.item.status),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
 
             // Exchanger Information
@@ -158,10 +190,14 @@ class _ExchangeItemDetailScreenState extends State<ExchangeItemDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _infoRow("Name:", _exchangerData!['name'] ?? "N/A"),
-                  _infoRow("Email:", _exchangerData!['email'] ?? "N/A"),
-                  _infoRow("Address:", _exchangerData!['address'] ?? "No Address Saved"),
-                  _infoRow("Phone:", _exchangerData!['phone'] ?? "No Phone Number"),
+                  _infoRow(
+                      "Name:", _exchangerData!['name'] ?? "N/A"),
+                  _infoRow(
+                      "Email:", _exchangerData!['email'] ?? "N/A"),
+                  _infoRow("Address:",
+                      _exchangerData!['address'] ?? "No Address Saved"),
+                  _infoRow("Phone:",
+                      _exchangerData!['phone'] ?? "No Phone Number"),
                 ],
               ),
             ),
@@ -198,11 +234,13 @@ class _ExchangeItemDetailScreenState extends State<ExchangeItemDetailScreen> {
                       label: "SMS",
                       color: Colors.blue,
                       onPressed: () {
-                        if (_exchangerData != null && _exchangerData!['phone'] != null) {
+                        if (_exchangerData != null &&
+                            _exchangerData!['phone'] != null) {
                           _sendSMS(_exchangerData!['phone']);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Phone number not available")),
+                            const SnackBar(
+                                content: Text("Phone number not available")),
                           );
                         }
                       },
@@ -215,11 +253,13 @@ class _ExchangeItemDetailScreenState extends State<ExchangeItemDetailScreen> {
                       label: "Call",
                       color: Colors.green,
                       onPressed: () {
-                        if (_exchangerData != null && _exchangerData!['phone'] != null) {
+                        if (_exchangerData != null &&
+                            _exchangerData!['phone'] != null) {
                           _makeCall(_exchangerData!['phone']);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Phone number not available")),
+                            const SnackBar(
+                                content: Text("Phone number not available")),
                           );
                         }
                       },
