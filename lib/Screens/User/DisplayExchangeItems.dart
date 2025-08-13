@@ -96,8 +96,7 @@ class _DisplayExchangeItemsState extends State<DisplayExchangeItems> {
                       MaterialPageRoute(
                         builder: (_) => ExchangeItemDetailScreen(
                           item: selectedItem,
-                          currentUserId:
-                          'CURRENT_USER_ID', // Replace with actual user ID
+
                         ),
                       ),
                     );
