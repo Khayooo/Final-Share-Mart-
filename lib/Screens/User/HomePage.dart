@@ -573,7 +573,7 @@ class _HomePageState extends State<HomePage>
         content: TextField(
           controller: messageController,
           decoration: const InputDecoration(hintText: "Enter your message"),
-          maxLines: 3,
+
         ),
         actions: [
           TextButton(
@@ -594,8 +594,9 @@ class _HomePageState extends State<HomePage>
                 // You can also trigger sending here via Firebase, etc.
               }
             },
-            child: const Text("Send"),
+            child: const Text("Send")
           ),
+
         ],
       ),
     );
