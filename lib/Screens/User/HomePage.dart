@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fypnewproject/Screens/User/Chat/ChatWithUserScreen.dart';
 
 import '../../Model/ItemModel.dart';
+import '../SearchPage.dart';
 import 'DetailsScreen/ItemDetailsScreen.dart';
 import 'ListedItem.dart';
 import '../Notifications.dart';
@@ -20,6 +21,8 @@ import '../../Widgets/PendingVerificationPage.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:fypnewproject/Screens/User/DisplayExchangeItems.dart';
 import 'package:fypnewproject/Screens/User/DisplayRequestedItems.dart';
+
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -219,7 +222,7 @@ class _HomePageState extends State<HomePage>
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple, ),
                 child: const Text("Continue",style: TextStyle(
-                  color: Colors.white
+                    color: Colors.white
                 ),),
               ),
             ],
@@ -248,7 +251,7 @@ class _HomePageState extends State<HomePage>
       };
 
 
-        newMessage['text'] = text ;
+      newMessage['text'] = text ;
 
       await FirebaseFirestore.instance
           .collection('chats')
@@ -315,22 +318,38 @@ class _HomePageState extends State<HomePage>
               children: [
                 const Text("Find items to donate or request", style: TextStyle(color: Colors.deepPurple)),
                 const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.search, color: Colors.deepPurple),
-                      SizedBox(width: 10),
-                      Expanded(child: TextField(decoration: InputDecoration(hintText: 'Search for items...', border: InputBorder.none))),
-                      Icon(Icons.tune, color: Colors.deepPurple),
-                    ],
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SearchPage()),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16,vertical:16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black12, blurRadius: 8),
+                      ],
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.search, color: Colors.deepPurple),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Search for items...',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        Icon(Icons.tune, color: Colors.deepPurple),
+                      ],
+                    ),
                   ),
                 ),
+
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -345,8 +364,6 @@ class _HomePageState extends State<HomePage>
                 const SizedBox(height: 12),
                 _buildFeaturedItemsGrid(isLargeScreen),
                 const SizedBox(height: 32),
-                _buildBrowseByCategory(),
-                const SizedBox(height: 100), // Additional space at bottom
               ],
             ),
           ),
@@ -401,126 +418,6 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _buildBrowseByCategory() {
-    final categories = [
-      {'name': 'Electronics', 'icon': Icons.phone_android, 'color': Colors.purple.shade100},
-      {'name': 'Watches', 'icon': Icons.watch, 'color': Colors.blue.shade100},
-      {'name': 'Furniture', 'icon': Icons.chair, 'color': Colors.green.shade100},
-      {'name': 'Books', 'icon': Icons.book, 'color': Colors.orange.shade100},
-      {'name': 'Kitchenware', 'icon': Icons.kitchen, 'color': Colors.red.shade100},
-      {'name': 'Toys', 'icon': Icons.toys, 'color': Colors.pink.shade100},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              "Browse by Category",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                // Navigate to all categories page
-              },
-              child: const Text(
-                "See all",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 100,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            physics: const BouncingScrollPhysics(),
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              return Container(
-                margin: const EdgeInsets.only(right: 16),
-                child: GestureDetector(
-                  onTap: () {
-                    // Handle category tap
-                    print('Tapped on ${category['name']}');
-                  },
-                  child: Column(
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          category['icon'] as IconData,
-                          color: Colors.deepPurple,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        category['name'] as String,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.deepPurple,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        // Scroll indicator dots
-        Center(
-          child: Container(
-            margin: const EdgeInsets.only(top: 8),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(
-                (categories.length / 3).ceil(),
-                    (index) => Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 2),
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: index == 0 ? Colors.deepPurple : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildNavItem(IconData icon, String label, int index) {
     final isSelected = _selectedIndex == index;
@@ -590,14 +487,14 @@ class _HomePageState extends State<HomePage>
                 children: [
                   Expanded(
                     child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ItemDetailsScreen(item: item.toMap()),
-                            ),
-                          );
-                        },
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ItemDetailsScreen(item: item.toMap()),
+                          ),
+                        );
+                      },
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: item.image.isNotEmpty
@@ -638,22 +535,22 @@ class _HomePageState extends State<HomePage>
                         Column(
                           children: [
 
-                           Row(
-                             children: [
-                               ElevatedButton(
-                                 onPressed: () {
-                                   _showNegotiateDialog(context, item);
-                                 },
-                                 style: ElevatedButton.styleFrom(
-                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                   backgroundColor: Colors.deepPurple,
-                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                 ),
-                                 child: const Text("Negotiate", style: TextStyle(fontSize: 11, color: Colors.white)),
-                               ),
-                               Spacer(),
-                             ],
-                           )
+                            Row(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    _showNegotiateDialog(context, item);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    backgroundColor: Colors.deepPurple,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  ),
+                                  child: const Text("Negotiate", style: TextStyle(fontSize: 11, color: Colors.white)),
+                                ),
+                                Spacer(),
+                              ],
+                            )
                           ],
                         ),
                       ],
