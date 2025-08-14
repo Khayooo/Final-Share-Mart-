@@ -224,7 +224,7 @@ class _RegisterNewUserState extends State<RegisterNewUser>
                             ),
                             SizedBox(height: size.height * 0.02),
 
-                            // Email Field
+                            // Email Field this field is for admin
                             _buildTextField(
                               controller: _emailController,
                               label: 'Email Address',
