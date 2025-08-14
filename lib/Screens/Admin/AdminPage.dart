@@ -11,7 +11,6 @@ import '../Authentication/LoginScreen.dart';
 class AdminPanelScreen extends StatelessWidget {
   const AdminPanelScreen({super.key});
 
-  // Tile button widget
   Widget buildTile({
     required IconData icon,
     required String title,
