@@ -7,7 +7,7 @@ class DonateItemModel {
   final int timestamp;
   final String uid;
   final String userId;
-
+//model for donate item
   DonateItemModel({
     required this.image,
     required this.itemType,
