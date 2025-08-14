@@ -591,7 +591,7 @@ class _HomePageState extends State<HomePage>
                   context,
                   MaterialPageRoute(builder: (context) => ChatWithUserScreen(currentUserId: currentUserId, receiverId: item.userId, itemType: 'Sell')),
                 );
-                // You can also trigger sending here via Firebase, etc.
+
               }
             },
             child: const Text("Send")
