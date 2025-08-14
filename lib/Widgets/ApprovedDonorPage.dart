@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ApprovedDonorPage extends StatelessWidget {
   const ApprovedDonorPage({super.key});
-
+//this is page for approved donor
   @override
   Widget build(BuildContext context) {
     return Scaffold(
