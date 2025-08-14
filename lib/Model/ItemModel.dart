@@ -1,4 +1,4 @@
-
+// this is model for item
 class ItemModel {
   final String image;
   final String itemType;
