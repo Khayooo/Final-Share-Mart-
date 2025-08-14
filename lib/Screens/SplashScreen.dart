@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
 
-    // Slow down animations for better visibility during development
+
     timeDilation = 1.5;
 
     _controller = AnimationController(
