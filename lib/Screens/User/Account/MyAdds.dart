@@ -60,7 +60,7 @@ class _MyAddsScreenState extends State<MyAddsScreen> {
     } else {
       // Handle case where user is not logged in
       print('No user logged in');
-      // You might want to navigate to login screen here
+
     }
   }
 
