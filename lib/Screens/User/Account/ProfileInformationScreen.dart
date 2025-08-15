@@ -261,7 +261,9 @@ class _ProfileInformationScreenState extends State<ProfileInformationScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 24),
+
             _buildFormField(
               label: "Full Name",
               icon: Icons.person,
@@ -338,7 +340,7 @@ class _ProfileInformationScreenState extends State<ProfileInformationScreen> {
       ),
     );
   }
-
+// Profile image
   DecorationImage? _getProfileImage() {
     if (_profileImage != null) {
       return DecorationImage(
