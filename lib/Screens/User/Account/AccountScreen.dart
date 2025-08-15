@@ -65,7 +65,7 @@ class _AccountScreenState extends State<AccountScreen>
     _controller.dispose();
     super.dispose();
   }
-
+// Load user data from Firebase Realtime Database
   Future<void> _loadUserData() async {
     try {
       final user = _auth.currentUser;
