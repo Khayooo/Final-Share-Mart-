@@ -39,7 +39,7 @@ class _DonorVerificationScreenState extends State<DonorVerificationScreen> {
     _addressController.dispose();
     super.dispose();
   }
-
+// Upload file to Firebase real-time database
   Future<void> _uploadFile(String fieldName) async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
