@@ -1,8 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'ChatList.dart';
-import '../../../Widgets/NoMessageWidget.dart';
 
 class ChatsScreen extends StatefulWidget {
   const ChatsScreen({super.key});
