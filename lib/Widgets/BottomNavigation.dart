@@ -3,12 +3,12 @@ import '../Screens/User/Account/AccountScreen.dart';
 import '../Screens/User/Chat/ChatsScreen.dart';
 import '../Screens/User/Dontaion/DonationItems.dart';
 
-// ignore: must_be_immutable
+
 class BottomNavigator extends StatelessWidget {
   const BottomNavigator({super.key});
 
   void _showAddItemDialog(BuildContext context) {
-    // TODO: Implement your add item dialog here
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
