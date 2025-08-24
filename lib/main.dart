@@ -1,8 +1,5 @@
-
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'Screens/SplashScreen.dart';
 import 'Screens/User/HomePage.dart';
@@ -37,8 +34,6 @@ class MyApp extends StatelessWidget {
           return Center(child: CircularProgressIndicator());
         },
       ),
-      // home: ExchangeProduct(),
-      // home: RequestProduct()
     );
     }
 }
