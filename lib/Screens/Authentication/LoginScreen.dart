@@ -12,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
-  //State Variables
+  // State Variables
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
@@ -58,76 +58,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
-  //backend logic for login
-  Future<void> _login() async {
-    // Checks if fields are empty.
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showSnackBar('Please fill in all fields', isError: true);
-      return;
-    }
+  // ------------------- FRONTEND (UI) -------------------
 
-    // Checks if email is valid.
-    setState(() => _isLoading = true);
-
-
-    try {
-      // Attempt to sign in with the provided email and password.
-      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-
-      // Check if the user is an admin.
-      if (userCredential.user != null && mounted) {
-        final userEmail = userCredential.user!.email;
-        final isAdmin = userEmail == 'mabdullahkhayoo@gmail.com';
-
-        _showSnackBar(isAdmin ? 'Admin login successful!' : 'Login successful!');
-
-        // Delay for 500 milliseconds before navigating to the appropriate screen.
-        await Future.delayed(const Duration(milliseconds: 500));
-
-
-        if (!mounted) return;
-
-        // Navigate to the appropriate screen based on the user's role.
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => isAdmin ? const AdminPanelScreen() : const HomePage(),
-          ),
-        );
-      }
-
-    } on FirebaseAuthException catch (e) {
-      // Handle authentication errors.
-      _showSnackBar('Wrong email or password', isError: true);
-    } catch (e) {
-      // Handle other errors.
-      _showSnackBar('An unexpected error occurred. Please try again.', isError: true);
-    } finally {
-
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-
-  // Show a snackbar with the provided message and color.
-  void _showSnackBar(String message, {bool isError = false}) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red.shade700 : Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  // UI started here
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -159,13 +91,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-
                     child: Padding(
                       padding: EdgeInsets.all(isSmallScreen ? 24 : 32),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Logo and welcome text
                           const Icon(Icons.volunteer_activism, size: 60, color: Colors.amber),
                           SizedBox(height: size.height * 0.02),
                           Text(
@@ -177,7 +107,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           ),
                           SizedBox(height: size.height * 0.01),
-                          // Login text
                           Text(
                             'Login to continue sharing',
                             style: TextStyle(
@@ -187,7 +116,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                           SizedBox(height: size.height * 0.04),
 
-                          // Text fields for email and password
                           _buildTextField(
                             controller: _emailController,
                             label: 'Email Address',
@@ -198,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             isSmallScreen: isSmallScreen,
                           ),
                           SizedBox(height: size.height * 0.02),
-                          // Password field with visibility toggle
+
                           _buildTextField(
                             controller: _passwordController,
                             label: 'Password',
@@ -209,6 +137,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             isSmallScreen: isSmallScreen,
                           ),
                           SizedBox(height: size.height * 0.02),
+
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
@@ -223,6 +152,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           ),
                           SizedBox(height: size.height * 0.03),
+
                           SizedBox(
                             width: double.infinity,
                             height: isSmallScreen ? 50 : 56,
@@ -249,6 +179,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           ),
                           SizedBox(height: size.height * 0.03),
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -352,6 +283,62 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           keyboardType: isPassword ? TextInputType.visiblePassword : TextInputType.emailAddress,
         ),
       ],
+    );
+  }
+
+  // ------------------- BACKEND LOGIC -------------------
+
+  Future<void> _login() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showSnackBar('Please fill in all fields', isError: true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (userCredential.user != null && mounted) {
+        final userEmail = userCredential.user!.email;
+        final isAdmin = userEmail == 'mabdullahkhayoo@gmail.com';
+
+        _showSnackBar(isAdmin ? 'Admin login successful!' : 'Login successful!');
+
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (!mounted) return;
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => isAdmin ? const AdminPanelScreen() : const HomePage(),
+          ),
+        );
+      }
+    } on FirebaseAuthException {
+      _showSnackBar('Wrong email or password', isError: true);
+    } catch (e) {
+      _showSnackBar('An unexpected error occurred. Please try again.', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red.shade700 : Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 
