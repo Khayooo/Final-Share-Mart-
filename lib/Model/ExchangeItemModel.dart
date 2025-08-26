@@ -1,3 +1,5 @@
+// this is model for exchange item
+
 class ExchangeItemModel {
   final String id;
   final String productName;
@@ -8,7 +10,7 @@ class ExchangeItemModel {
   final String userId;
   final String status;
   final int timestamp;
-// this is model for exchange item
+
   ExchangeItemModel({
     required this.id,
     required this.productName,
