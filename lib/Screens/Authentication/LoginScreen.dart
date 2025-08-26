@@ -12,6 +12,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
+  //State Variables
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
@@ -57,30 +58,39 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
+  //backend logic for login
   Future<void> _login() async {
+    // Checks if fields are empty.
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showSnackBar('Please fill in all fields', isError: true);
       return;
     }
 
+    // Checks if email is valid.
     setState(() => _isLoading = true);
 
+
     try {
+      // Attempt to sign in with the provided email and password.
       final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
+      // Check if the user is an admin.
       if (userCredential.user != null && mounted) {
         final userEmail = userCredential.user!.email;
         final isAdmin = userEmail == 'mabdullahkhayoo@gmail.com';
 
         _showSnackBar(isAdmin ? 'Admin login successful!' : 'Login successful!');
 
-        await Future.delayed(const Duration(milliseconds: 1500));
+        // Delay for 500 milliseconds before navigating to the appropriate screen.
+        await Future.delayed(const Duration(milliseconds: 500));
+
 
         if (!mounted) return;
 
+        // Navigate to the appropriate screen based on the user's role.
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -88,18 +98,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           ),
         );
       }
+
     } on FirebaseAuthException catch (e) {
+      // Handle authentication errors.
       _showSnackBar('Wrong email or password', isError: true);
     } catch (e) {
+      // Handle other errors.
       _showSnackBar('An unexpected error occurred. Please try again.', isError: true);
     } finally {
+
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
 
+  // Show a snackbar with the provided message and color.
   void _showSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -111,6 +127,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 
+  // UI started here
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
