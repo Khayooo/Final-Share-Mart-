@@ -159,11 +159,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
+
                     child: Padding(
                       padding: EdgeInsets.all(isSmallScreen ? 24 : 32),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // Logo and welcome text
                           const Icon(Icons.volunteer_activism, size: 60, color: Colors.amber),
                           SizedBox(height: size.height * 0.02),
                           Text(
@@ -175,6 +177,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           ),
                           SizedBox(height: size.height * 0.01),
+                          // Login text
                           Text(
                             'Login to continue sharing',
                             style: TextStyle(
@@ -183,6 +186,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           ),
                           SizedBox(height: size.height * 0.04),
+
+                          // Text fields for email and password
                           _buildTextField(
                             controller: _emailController,
                             label: 'Email Address',
@@ -193,6 +198,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             isSmallScreen: isSmallScreen,
                           ),
                           SizedBox(height: size.height * 0.02),
+                          // Password field with visibility toggle
                           _buildTextField(
                             controller: _passwordController,
                             label: 'Password',
