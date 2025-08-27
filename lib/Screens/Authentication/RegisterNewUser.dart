@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:firebase_database/firebase_database.dart';
 
-
 class RegisterNewUser extends StatefulWidget {
   const RegisterNewUser({super.key});
 
@@ -13,6 +12,7 @@ class RegisterNewUser extends StatefulWidget {
 
 class _RegisterNewUserState extends State<RegisterNewUser>
     with SingleTickerProviderStateMixin {
+  // ------------------- STATE VARIABLES -------------------
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -66,82 +66,7 @@ class _RegisterNewUserState extends State<RegisterNewUser>
     super.dispose();
   }
 
-
-
-  Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      final userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-
-      final newUser = userCredential.user;
-      if (newUser != null) {
-        await FirebaseDatabase.instance
-            .ref('users/${newUser.uid}')
-            .set({
-          'name': _nameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'uid': newUser.uid,
-        });
-
-        await newUser.updateDisplayName(_nameController.text.trim());
-
-        if (mounted) Navigator.pop(context);
-      }
-    } on FirebaseAuthException catch (e) {
-      final message = _getErrorMessage(e.code);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: Colors.red.shade700,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Something went wrong. Try again.'),
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  String _getErrorMessage(String errorCode) {
-    switch (errorCode) {
-      case 'email-already-in-use':
-        return 'This email is already registered.';
-      case 'invalid-email':
-        return 'Invalid email address format.';
-      case 'operation-not-allowed':
-        return 'Email/password accounts are not enabled.';
-      case 'weak-password':
-        return 'Weak password. Minimum 6 characters required.';
-      case 'too-many-requests':
-        return 'Too many attempts. Try again later.';
-      case 'network-request-failed':
-        return 'Network error. Please check your connection.';
-      default:
-        return 'Registration failed. Please try again.';
-    }
-  }
+  // ------------------- FRONTEND (UI) -------------------
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +149,7 @@ class _RegisterNewUserState extends State<RegisterNewUser>
                             ),
                             SizedBox(height: size.height * 0.02),
 
-                            // Email Field this field is for admin
+                            // Email Field
                             _buildTextField(
                               controller: _emailController,
                               label: 'Email Address',
@@ -269,7 +194,6 @@ class _RegisterNewUserState extends State<RegisterNewUser>
                                 }
                                 return null;
                               },
-
                               isPassword: true,
                               size: size,
                               isSmallScreen: isSmallScreen,
@@ -445,5 +369,82 @@ class _RegisterNewUserState extends State<RegisterNewUser>
         ),
       ],
     );
+  }
+
+  // ------------------- BACKEND (LOGIC) -------------------
+
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      final newUser = userCredential.user;
+      if (newUser != null) {
+        await FirebaseDatabase.instance
+            .ref('users/${newUser.uid}')
+            .set({
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'uid': newUser.uid,
+        });
+
+        await newUser.updateDisplayName(_nameController.text.trim());
+
+        if (mounted) Navigator.pop(context);
+      }
+    } on FirebaseAuthException catch (e) {
+      final message = _getErrorMessage(e.code);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Something went wrong. Try again.'),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  String _getErrorMessage(String errorCode) {
+    switch (errorCode) {
+      case 'email-already-in-use':
+        return 'This email is already registered.';
+      case 'invalid-email':
+        return 'Invalid email address format.';
+      case 'operation-not-allowed':
+        return 'Email/password accounts are not enabled.';
+      case 'weak-password':
+        return 'Weak password. Minimum 6 characters required.';
+      case 'too-many-requests':
+        return 'Too many attempts. Try again later.';
+      case 'network-request-failed':
+        return 'Network error. Please check your connection.';
+      default:
+        return 'Registration failed. Please try again.';
+    }
   }
 }
