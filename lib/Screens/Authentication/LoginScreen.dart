@@ -309,7 +309,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         _showSnackBar(isAdmin ? 'Admin login successful!' : 'Login successful!');
 
         await Future.delayed(const Duration(milliseconds: 500));
-
+        
         if (!mounted) return;
 
         Navigator.pushReplacement(
