@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fypnewproject/Screens/User/Chat/ChatWithUserScreen.dart';
-
 import '../../Model/ItemModel.dart';
 import '../SearchPage.dart';
 import 'DetailsScreen/ItemDetailsScreen.dart';
@@ -22,8 +21,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:fypnewproject/Screens/User/DisplayExchangeItems.dart';
 import 'package:fypnewproject/Screens/User/DisplayRequestedItems.dart';
 
-
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -33,15 +30,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
-  final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref().child('items');
+
+  // Variables
+  final DatabaseReference _databaseRef =
+  FirebaseDatabase.instance.ref().child('items');
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
   final TextEditingController messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   int _selectedIndex = 0;
+
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
   late Animation<double> _scaleAnimation;
 
+  // Init & Dispose
   @override
   void initState() {
     super.initState();
@@ -69,12 +71,309 @@ class _HomePageState extends State<HomePage>
     super.dispose();
   }
 
+  // ===========================
+  //  FRONTEND (UI PART)
+  // ===========================
+
+  @override
+  Widget build(BuildContext context) {
+    final isLargeScreen = MediaQuery.of(context).size.width > 600;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F3FF),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text("Welcome, Share Mart!",
+            style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.deepPurple)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_rounded,
+                color: Colors.deepPurple),
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => NotificationsPage()));
+            },
+          ),
+        ],
+      ),
+      body: FadeTransition(
+        opacity: _opacityAnimation,
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Find items to donate or request",
+                    style: TextStyle(color: Colors.deepPurple)),
+                const SizedBox(height: 16),
+
+                // Search Bar
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SearchPage()),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black12, blurRadius: 8),
+                      ],
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.search, color: Colors.deepPurple),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Search for items...',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        Icon(Icons.tune, color: Colors.deepPurple),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                /// 🏷 Featured Items
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Featured Items",
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.deepPurple)),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const ItemListed()));
+                        },
+                        child: const Text("See all",
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple))),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _buildFeaturedItemsGrid(isLargeScreen),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
+      ),
+
+      // Add Button
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.deepPurple,
+        onPressed: () => _showAddItemDialog(context),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
+      // Bottom Navigation
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.home),
+              color: _selectedIndex == 0 ? Colors.deepPurple : Colors.grey,
+              onPressed: () => _onNavTapped(0),
+            ),
+            IconButton(
+              icon: const Icon(Icons.volunteer_activism),
+              color: _selectedIndex == 1 ? Colors.deepPurple : Colors.grey,
+              onPressed: () => _onNavTapped(1),
+            ),
+            IconButton(
+              icon: const Icon(Icons.compare_arrows),
+              color: _selectedIndex == 2 ? Colors.deepPurple : Colors.grey,
+              onPressed: () => _onNavTapped(2),
+            ),
+            IconButton(
+              icon: const Icon(Icons.request_quote),
+              color: _selectedIndex == 3 ? Colors.deepPurple : Colors.grey,
+              onPressed: () => _onNavTapped(3),
+            ),
+            IconButton(
+              icon: const Icon(Icons.chat_bubble_outline),
+              color: _selectedIndex == 4 ? Colors.deepPurple : Colors.grey,
+              onPressed: () => _onNavTapped(4),
+            ),
+            IconButton(
+              icon: const Icon(Icons.person_outline),
+              color: _selectedIndex == 5 ? Colors.deepPurple : Colors.grey,
+              onPressed: () => _onNavTapped(5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  //Featured Items Grid
+  Widget _buildFeaturedItemsGrid(bool isLargeScreen) {
+    return StreamBuilder(
+      stream: _databaseRef.onValue,
+      builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final itemsMap =
+        snapshot.data?.snapshot.value as Map<dynamic, dynamic>?;
+        if (itemsMap == null || itemsMap.isEmpty) {
+          return const Center(child: Text('No items available'));
+        }
+
+        final items = itemsMap.entries.map((entry) {
+          final data = entry.value as Map<dynamic, dynamic>;
+          return ItemModel.fromMap(Map<String, dynamic>.from(data));
+        }).toList();
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length > 8 ? 8 : items.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: isLargeScreen ? 8 : 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.75,
+          ),
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// 🖼 Item Image
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                ItemDetailsScreen(item: item.toMap()),
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: item.image.isNotEmpty
+                            ? Image.memory(
+                          base64Decode(item.image),
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                          height: 100,
+                        )
+                            : Container(
+                          width: double.infinity,
+                          height: 100,
+                          color: Colors.grey.shade200,
+                          child: const Icon(Icons.image,
+                              size: 50, color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  /// 📦 Item Details
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.productName,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                                color: Colors.deepPurple.shade50,
+                                borderRadius: BorderRadius.circular(20)),
+                            child: Text(
+                              "Rs. ${item.productPrice}",
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.deepPurple),
+                            ),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                _showNegotiateDialog(context, item);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                backgroundColor: Colors.deepPurple,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20)),
+                              ),
+                              child: const Text("Negotiate",
+                                  style: TextStyle(
+                                      fontSize: 11, color: Colors.white)),
+                            ),
+                            const Spacer(),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ===========================
+  // 🔹 BACKEND / LOGIC PART
+  // ===========================
+
   Future<void> _onNavTapped(int index) async {
     setState(() => _selectedIndex = index);
 
     if (index == 1) {
       final currentUser = FirebaseAuth.instance.currentUser;
-
       if (currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Please sign in first.")),
@@ -86,22 +385,26 @@ class _HomePageState extends State<HomePage>
       final dbRef = FirebaseDatabase.instance.ref("donor_verifications");
 
       try {
-        final snapshot = await dbRef.orderByChild("userId").equalTo(uid).once();
+        final snapshot =
+        await dbRef.orderByChild("userId").equalTo(uid).once();
 
         if (snapshot.snapshot.exists) {
           final data = snapshot.snapshot.value as Map;
-          final firstEntry = data.entries.first.value as Map<dynamic, dynamic>;
+          final firstEntry =
+          data.entries.first.value as Map<dynamic, dynamic>;
           final status = firstEntry['status'];
 
           if (status == 'approved') {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const DonationItemsScreen()),
+              MaterialPageRoute(
+                  builder: (context) => const DonationItemsScreen()),
             );
           } else if (status == 'pending') {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const PendingVerificationPage()),
+              MaterialPageRoute(
+                  builder: (context) => const PendingVerificationPage()),
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -111,7 +414,8 @@ class _HomePageState extends State<HomePage>
         } else {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const DonorVerificationScreen()),
+            MaterialPageRoute(
+                builder: (context) => const DonorVerificationScreen()),
           );
         }
       } catch (e) {
@@ -143,8 +447,6 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-
-
   void _showAddItemDialog(BuildContext context) {
     bool sellChecked = false;
     bool donateChecked = false;
@@ -156,8 +458,11 @@ class _HomePageState extends State<HomePage>
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setState) {
           return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Text("Select Item Type", style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
+            shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text("Select Item Type",
+                style: TextStyle(
+                    color: Colors.deepPurple, fontWeight: FontWeight.bold)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -208,22 +513,39 @@ class _HomePageState extends State<HomePage>
               ],
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel", style: TextStyle(color: Colors.deepPurple))),
+              TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel",
+                      style: TextStyle(color: Colors.deepPurple))),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                   if (sellChecked || donateChecked) {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => AddItemScreen(itemType: sellChecked ? "Sell" : "Donate", isDonation: donateChecked)));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => AddItemScreen(
+                                itemType: sellChecked ? "Sell" : "Donate",
+                                isDonation: donateChecked)));
                   } else if (exchangeChecked) {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ExchangeProduct()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ExchangeProduct()));
                   } else if (requestChecked) {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const RequestProduct()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const RequestProduct()));
                   }
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple, ),
-                child: const Text("Continue",style: TextStyle(
-                    color: Colors.white
-                ),),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                ),
+                child: const Text(
+                  "Continue",
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ],
           );
@@ -247,11 +569,10 @@ class _HomePageState extends State<HomePage>
       final newMessage = {
         'senderId': currentUserId,
         'timestamp': FieldValue.serverTimestamp(),
-        'type':  'text',
+        'type': 'text',
       };
 
-
-      newMessage['text'] = text ;
+      newMessage['text'] = text;
 
       await FirebaseFirestore.instance
           .collection('chats')
@@ -259,16 +580,13 @@ class _HomePageState extends State<HomePage>
           .collection('messages')
           .add(newMessage);
 
-      await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(chatId)
-          .set({
+      await FirebaseFirestore.instance.collection('chats').doc(chatId).set({
         'participants': {
           currentUserId: true,
           receiverId: true,
         },
         'itemType': 'Sell',
-        'lastMessage':  text,
+        'lastMessage': text,
         'timestamp': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
@@ -288,284 +606,7 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final isLargeScreen = MediaQuery.of(context).size.width > 600;
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F3FF),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text("Welcome, Share Mart!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none_rounded, color: Colors.deepPurple),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationsPage()));
-            },
-          ),
-        ],
-      ),
-      body: FadeTransition(
-        opacity: _opacityAnimation,
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 120), // Increased bottom padding
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("Find items to donate or request", style: TextStyle(color: Colors.deepPurple)),
-                const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const SearchPage()),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16,vertical:16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black12, blurRadius: 8),
-                      ],
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.search, color: Colors.deepPurple),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Search for items...',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                        Icon(Icons.tune, color: Colors.deepPurple),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("Featured Items", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
-                    TextButton(onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const ItemListed())); },
-                        child: const Text("See all", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.deepPurple))),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                _buildFeaturedItemsGrid(isLargeScreen),
-                const SizedBox(height: 32),
-              ],
-            ),
-          ),
-        ),
-      ),
-
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.deepPurple,
-        onPressed: () => _showAddItemDialog(context),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.home),
-              color: _selectedIndex == 0 ? Colors.deepPurple : Colors.grey,
-              onPressed: () => _onNavTapped(0),
-            ),
-            IconButton(
-              icon: const Icon(Icons.volunteer_activism),
-              color: _selectedIndex == 1 ? Colors.deepPurple : Colors.grey,
-              onPressed: () => _onNavTapped(1),
-            ),
-            IconButton(
-              icon: const Icon(Icons.compare_arrows),
-              color: _selectedIndex == 2 ? Colors.deepPurple : Colors.grey,
-              onPressed: () => _onNavTapped(2),
-            ),
-            IconButton(
-              icon: const Icon(Icons.request_quote),
-              color: _selectedIndex == 3 ? Colors.deepPurple : Colors.grey,
-              onPressed: () => _onNavTapped(3),
-            ),
-            IconButton(
-              icon: const Icon(Icons.chat_bubble_outline),
-              color: _selectedIndex == 4 ? Colors.deepPurple : Colors.grey,
-              onPressed: () => _onNavTapped(4),
-            ),
-            IconButton(
-              icon: const Icon(Icons.person_outline),
-              color: _selectedIndex == 5 ? Colors.deepPurple : Colors.grey,
-              onPressed: () => _onNavTapped(5),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  Widget _buildNavItem(IconData icon, String label, int index) {
-    final isSelected = _selectedIndex == index;
-    return GestureDetector(
-      onTap: () => _onNavTapped(index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.deepPurple : Colors.grey,
-              size: 22,
-            ),
-            const SizedBox(height: 2),
-            Flexible(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.deepPurple : Colors.grey,
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeaturedItemsGrid(bool isLargeScreen) {
-    return StreamBuilder(
-      stream: _databaseRef.onValue,
-      builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
-        if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-
-        final itemsMap = snapshot.data?.snapshot.value as Map<dynamic, dynamic>?;
-        if (itemsMap == null || itemsMap.isEmpty) return const Center(child: Text('No items available'));
-
-        final items = itemsMap.entries.map((entry) {
-          final data = entry.value as Map<dynamic, dynamic>;
-          return ItemModel.fromMap(Map<String, dynamic>.from(data));
-        }).toList();
-
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: items.length > 4 ? 4 : items.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: isLargeScreen ? 4 : 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.75,
-          ),
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ItemDetailsScreen(item: item.toMap()),
-                          ),
-                        );
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: item.image.isNotEmpty
-                            ? Image.memory(
-                          base64Decode(item.image),
-                          fit: BoxFit.cover,
-                          width: double.infinity, // take full available width
-                          height: 100,             // fixed height
-                        )
-                            : Container(
-                          width: double.infinity,
-                          height: 100,
-                          color: Colors.grey.shade200,
-                          child: const Icon(Icons.image, size: 50, color: Colors.grey),
-                        ),
-                      ),
-
-                    ),
-                  ),
-
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(item.productName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: 8),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            decoration: BoxDecoration(color: Colors.deepPurple.shade50, borderRadius: BorderRadius.circular(20)),
-                            child: Text(
-                              "Rs. ${item.productPrice}",
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-                            ),
-                          ),
-                        ),
-                        Column(
-                          children: [
-
-                            Row(
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    _showNegotiateDialog(context, item);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    backgroundColor: Colors.deepPurple,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                  ),
-                                  child: const Text("Negotiate", style: TextStyle(fontSize: 11, color: Colors.white)),
-                                ),
-                                Spacer(),
-                              ],
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
   void _showNegotiateDialog(BuildContext context, item) {
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -573,7 +614,6 @@ class _HomePageState extends State<HomePage>
         content: TextField(
           controller: messageController,
           decoration: const InputDecoration(hintText: "Enter your message"),
-
         ),
         actions: [
           TextButton(
@@ -582,24 +622,27 @@ class _HomePageState extends State<HomePage>
           ),
           ElevatedButton(
             onPressed: () {
-
               final message = messageController.text.trim();
               Navigator.pop(context);
               if (message.isNotEmpty) {
                 _sendMessage(item.userId);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ChatWithUserScreen(currentUserId: currentUserId, receiverId: item.userId, itemType: 'Sell')),
+                  MaterialPageRoute(
+                    builder: (context) => ChatWithUserScreen(
+                      currentUserId: currentUserId,
+                      receiverId: item.userId,
+                      itemType: 'Sell',
+                    ),
+                  ),
                 );
-
               }
             },
-            child: const Text("Send")
+            child: const Text("Send"),
           ),
-
         ],
       ),
     );
   }
-
 }
+
