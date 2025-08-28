@@ -274,7 +274,7 @@ class _HomePageState extends State<HomePage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// 🖼 Item Image
+                  //  Item Image
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
@@ -306,7 +306,7 @@ class _HomePageState extends State<HomePage>
                     ),
                   ),
 
-                  /// 📦 Item Details
+                  // Item Details
                   Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -366,7 +366,7 @@ class _HomePageState extends State<HomePage>
   }
 
   // ===========================
-  // 🔹 BACKEND / LOGIC PART
+  //  BACKEND / LOGIC PART
   // ===========================
 
   Future<void> _onNavTapped(int index) async {
