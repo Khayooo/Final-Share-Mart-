@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import '../../Model/ExchangeItemModel.dart';
+import '../../Model/ItemModel.dart';
 
 import 'DetailsScreen/ExchangeItemDetailScreen.dart';
 
