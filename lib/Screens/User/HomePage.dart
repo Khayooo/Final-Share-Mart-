@@ -200,6 +200,7 @@ class _HomePageState extends State<HomePage>
               icon: const Icon(Icons.home),
               color: _selectedIndex == 0 ? Colors.deepPurple : Colors.grey,
               onPressed: () => _onNavTapped(0),
+
             ),
             IconButton(
               icon: const Icon(Icons.volunteer_activism),
